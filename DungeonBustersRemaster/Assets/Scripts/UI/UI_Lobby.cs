@@ -19,16 +19,9 @@ public class UI_Lobby : MonoBehaviour
     [SerializeField] Button Btn_SetName;
     [SerializeField] Button Btn_SelectCharacter;
 
-    private MyNetworkRoomManager networkManager;
 
     private void OnEnable()
     {
-        networkManager = FindAnyObjectByType<MyNetworkRoomManager>();
-        if(networkManager == null)
-        {
-            Debug.LogError("MyNetworkRoomManager not found!");
-            return;
-        }
 
 
         Btn_Setting.onClick.AddListener(OnClick_Setting);
@@ -59,7 +52,7 @@ public class UI_Lobby : MonoBehaviour
 
     private void OnClick_StartWithHost()
     {
-        networkManager.StartServer();
+        UIManager.Instance.ShowUI(UIPrefab.SetPlayerNumUI);
     }
 
     private void OnClick_StartWithGuest()

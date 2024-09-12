@@ -14,7 +14,8 @@ public enum UIPrefab
     TitleUI,
     LobbyUI,
     RoomUI,
-    ClientConnectUI
+    ClientConnectUI,
+    SetPlayerNumUI
 
 }
 

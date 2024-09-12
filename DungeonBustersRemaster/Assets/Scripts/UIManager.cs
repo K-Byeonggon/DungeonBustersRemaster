@@ -10,7 +10,12 @@ using UnityEngine;
 public enum UIPrefab
 {
     TempUI,
-    TempUI2
+    TempUI2,
+    TitleUI,
+    LobbyUI,
+    RoomUI,
+    ClientConnectUI
+
 }
 
 public static class UIPrefabExtensions
@@ -159,6 +164,7 @@ public class UIManager : Singleton<UIManager>
         return null;
     }
 
+
     private async UniTask ExpiredUI(string instanceName, float delay, CancellationToken token)
     {
         try
@@ -174,7 +180,13 @@ public class UIManager : Singleton<UIManager>
         }
         catch (OperationCanceledException)
         {
-            Debug.Log($"UI'{instanceName}' removal canceled.");
+            Debug.Log($"UI '{instanceName}' removal canceled.");
+        }
+        catch (MissingReferenceException)
+        {
+            Debug.Log($"UI '{instanceName}' has already been destroyed.");
+            activeUIs.Remove(instanceName);
+            removeTimers.Remove(instanceName);
         }
     }
 

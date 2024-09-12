@@ -1,24 +1,22 @@
 using Cysharp.Threading.Tasks;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : SingletonMono<GameManager>
 {
-    private void Awake()
+    protected override async void Awake()
     {
-        TestUIManager();
-    }
-
-    private async void TestUIManager()
-    {
+        base.Awake();
 
         await UniTask.WhenAll
         (
             UIManager.Instance.LoadAllUIPrefabs()
         );
 
+        UIManager.Instance.ShowUI(UIPrefab.TitleUI);
+    }
+
+    private async void TestUIManager()
+    {
         UIManager.Instance.ShowUI(UIPrefab.TempUI);
         UIManager.Instance.HideUIWithTimer(UIPrefab.TempUI);
 
@@ -27,7 +25,6 @@ public class GameManager : MonoBehaviour
 
         await UniTask.Delay(TimeSpan.FromSeconds(10));
         UIManager.Instance.ShowUI(UIPrefab.TempUI);
-
 
         await UniTask.Delay(TimeSpan.FromSeconds(2));
         UIManager.Instance.ShowUI(UIPrefab.TempUI2);

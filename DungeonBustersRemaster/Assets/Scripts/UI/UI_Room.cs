@@ -12,12 +12,11 @@ public class UI_Room : MonoBehaviour
 
     private void OnEnable()
     {
+        contentRoomPlayerPrefab = UIManager.Instance.JustGetUIPrefab(UIPrefab.Content_RoomPlayer);
 
 
         MyNetworkRoomManager.Instance.OnPlayerAdded += UpdatePlayerList;
         MyNetworkRoomManager.Instance.OnPlayerRemoved += UpdatePlayerList;
-
-        contentRoomPlayerPrefab = UIManager.Instance.JustGetUIPrefab(UIPrefab.Content_RoomPlayer);
 
         Btn_Ready.onClick.AddListener(OnClick_Ready);
         Btn_ExitRoom.onClick.AddListener(OnClick_ExitRoom);
@@ -33,6 +32,8 @@ public class UI_Room : MonoBehaviour
     }
 
     #region roomManager
+
+
 
 
     private void UpdatePlayerList()

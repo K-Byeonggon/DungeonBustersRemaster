@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class MyNetworkRoomManager : NetworkRoomManager
 {
+    #region Singleton
     public static MyNetworkRoomManager Instance { get; private set; }
 
     public override void Awake()
@@ -20,7 +21,7 @@ public class MyNetworkRoomManager : NetworkRoomManager
 
         base.Awake();
     }
-
+    #endregion
 
     public event Action OnPlayerAdded;
 
@@ -45,12 +46,17 @@ public class MyNetworkRoomManager : NetworkRoomManager
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {
         base.OnServerAddPlayer(conn);
+
         OnPlayerAdded?.Invoke();
+
     }
     public override void OnRoomServerDisconnect(NetworkConnectionToClient conn)
     {
         base.OnRoomServerDisconnect(conn);
+
         OnPlayerRemoved?.Invoke();
+    
+    
     }
 
     public override void OnClientConnect()

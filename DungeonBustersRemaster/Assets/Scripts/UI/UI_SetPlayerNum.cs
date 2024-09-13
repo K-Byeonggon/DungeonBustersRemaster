@@ -10,18 +10,9 @@ public class UI_SetPlayerNum : MonoBehaviour
     [SerializeField] Button Btn_3Players;
     [SerializeField] Button Btn_45Players;
 
-    private MyNetworkRoomManager networkManager;
 
     private void OnEnable()
     {
-        networkManager = FindAnyObjectByType<MyNetworkRoomManager>();
-        if (networkManager == null)
-        {
-            Debug.LogError("MyNetworkRoomManager not found!");
-            return;
-        }
-
-
         Btn_Background.onClick.AddListener(OnClick_Background);
         Btn_3Players.onClick.AddListener(OnClick_3Players);
         Btn_45Players.onClick.AddListener(OnClick_45Players);
@@ -43,15 +34,14 @@ public class UI_SetPlayerNum : MonoBehaviour
 
     private void OnClick_3Players()
     {
-        //networkManager.minPlayers = 3;    테스트 중에는 제한 없이
-        networkManager.StartServer();
+        //MyNetworkRoomManager.Instance.minPlayers = 3; 테스트 중에는 제한 없이
+        MyNetworkRoomManager.Instance.StartHost();
     }
 
     private void OnClick_45Players()
     {
-        //networkManager.minPlayers = 4;
-        networkManager.StartServer();
-
+        //MyNetworkRoomManager.Instance.minPlayers = 4; 테스트 중에는 제한 없이
+        MyNetworkRoomManager.Instance.StartHost();
     }
 
 }

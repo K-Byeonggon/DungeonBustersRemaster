@@ -1,3 +1,5 @@
+using kcp2k;
+using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -8,19 +10,12 @@ public class UI_ClientConnect : MonoBehaviour
 {
     [SerializeField] Button Btn_Background;
     [SerializeField] TMP_InputField Input_Address;
+    [SerializeField] TextMeshProUGUI Text_Error;
     [SerializeField] Button Btn_Connect;
 
-    private MyNetworkRoomManager networkManager;
 
     private void OnEnable()
     {
-        networkManager = FindAnyObjectByType<MyNetworkRoomManager>();
-        if(networkManager == null)
-        {
-            Debug.LogError("MyNetworkRoomManager not found!");
-            return;
-        }
-
         Btn_Background.onClick.AddListener(OnClick_Background);
         Btn_Connect.onClick.AddListener(OnClick_Connect);
     }
@@ -44,7 +39,34 @@ public class UI_ClientConnect : MonoBehaviour
             address = "127.0.0.1";  //defalut
         }
 
-        networkManager.networkAddress = address;
-        networkManager.StartClient();
+        MyNetworkRoomManager.Instance.networkAddress = address;
+
+        if(!IsValidAddress(address))
+        {
+            Text_Error.text = "잘못된 주소입니다.\n다시 입력해 주세요.";
+            return;
+        }
+        else
+        {
+            Text_Error.text = "주소는 주소에용";
+
+        }
+
+        try
+        {
+            MyNetworkRoomManager.Instance.StartClient();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"클라이언트 시작 중 오류 발생: {e.Message}");
+            Text_Error.text = "클라이언트 시작 중 오류가 발생했습니다.";
+        }
     }
+
+    private bool IsValidAddress(string address)
+    {
+        System.Net.IPAddress ip;
+        return System.Net.IPAddress.TryParse(address, out ip);
+    }
+
 }

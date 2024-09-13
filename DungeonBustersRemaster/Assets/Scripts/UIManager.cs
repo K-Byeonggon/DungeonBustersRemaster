@@ -15,7 +15,11 @@ public enum UIPrefab
     LobbyUI,
     RoomUI,
     ClientConnectUI,
-    SetPlayerNumUI
+    SetPlayerNumUI,
+    ClientDisconnectUI,
+
+    //Content들
+    Content_RoomPlayer
 
 }
 
@@ -198,5 +202,18 @@ public class UIManager : Singleton<UIManager>
             cts.Cancel();
             removeTimers.Remove(instanceName);
         }
+    }
+
+    //목록에 넣는 Content 같은 UI 가져오기
+    public GameObject JustGetUIPrefab(UIPrefab uiPrefab)
+    {
+        string uiName = uiPrefab.GetPrefabName();
+        if (!uiPrefabs.TryGetValue(uiName, out GameObject prefab))
+        {
+            Debug.LogError($"UI Prefab '{uiName}' not found!");
+            return null;
+        }
+
+        return prefab;
     }
 }

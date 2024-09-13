@@ -5,5 +5,8 @@ using UnityEngine;
 
 public class MyNetworkRoomPlayer : NetworkRoomPlayer
 {
-
+    private void Awake()
+    {
+        Debug.Log("지금");
+    }
 }

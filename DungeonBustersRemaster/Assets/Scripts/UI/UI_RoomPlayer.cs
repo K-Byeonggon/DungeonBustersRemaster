@@ -11,4 +11,13 @@ public class UI_RoomPlayer : MonoBehaviour
     [SerializeField] TextMeshProUGUI Text_PlayerName;
     [SerializeField] Image Img_Ready;
 
+    private void OnEnable()
+    {
+        
+    }
+
+    private void OnDisable()
+    {
+        
+    }
 }

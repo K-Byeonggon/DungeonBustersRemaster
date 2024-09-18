@@ -5,22 +5,22 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/Offline(Lobby)Scene.unity
     guid: bfa7f423ef7c33a4e8fa9b8ed8fe5b37
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/Online(Room)Scene.unity
     guid: dd76c363cde85004599e878f11addb6e
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/GamePlayScene.unity
     guid: b5c2336ef17485541a9add044d5ce210
-  - enabled: 1
+  - enabled: 0
     path: Assets/Mirror/Examples/Room/Scenes/MirrorRoomOffline.unity
     guid: 9e6f14982412b2545a0911ebaaa46a23
-  - enabled: 1
+  - enabled: 0
     path: Assets/Mirror/Examples/Room/Scenes/MirrorRoomOnline.unity
     guid: d7a6763559b31854586c9e49916273ef
-  - enabled: 1
+  - enabled: 0
     path: Assets/Mirror/Examples/Room/Scenes/MirrorRoomGame.unity
     guid: 48478f4d522f96945b8396f376299d3a
   m_configObjects: {}

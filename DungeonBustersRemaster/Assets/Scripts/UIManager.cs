@@ -29,7 +29,8 @@ public enum UIPrefab
 
     //Room(Online) Scene
     RoomUI,
-    Content_RoomPlayer
+    Content_RoomPlayer,
+    SelectCharacterUI
 
 }
 

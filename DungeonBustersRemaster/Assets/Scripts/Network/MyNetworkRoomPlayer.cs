@@ -6,6 +6,11 @@ using UnityEngine;
 
 public class MyNetworkRoomPlayer : NetworkRoomPlayer
 {
+    [SyncVar(hook = nameof(CharacterIndexChanged))]
+    public int characterIndex;
+
+    public int charIndex;
+
     public override void Start()
     {
         base.Start();
@@ -43,4 +48,29 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
         UI_Room roomUI = UIManager.Instance.GetActiveUI(UIPrefab.RoomUI).GetComponent<UI_Room>();
         roomUI.UpdatePlayerList();
     }
+
+
+
+    #region commands
+    
+    [Command]
+    public void CmdChangeCharacterIndex(int index)
+    {
+        characterIndex = index;
+    }
+
+    #endregion
+
+
+
+
+    #region hook
+
+    private void CharacterIndexChanged(int oldIndex, int newIndex)
+    {
+        Debug.Log($"{oldIndex} -> {newIndex}");
+        UI_Room roomUI = UIManager.Instance.GetActiveUI(UIPrefab.RoomUI).GetComponent<UI_Room>();
+        roomUI.UpdatePlayerList();
+    }
+    #endregion
 }

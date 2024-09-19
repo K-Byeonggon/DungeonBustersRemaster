@@ -10,6 +10,7 @@ public class UI_Room : MonoBehaviour
     [SerializeField] Button Btn_Ready;
     [SerializeField] TextMeshProUGUI Text_Ready;
     [SerializeField] Button Btn_ExitRoom;
+    [SerializeField] Button Btn_SelectCharacter;
 
     private NetworkRoomPlayer localRoomPlayer;
 
@@ -28,6 +29,7 @@ public class UI_Room : MonoBehaviour
 
         Btn_Ready.onClick.AddListener(OnClick_Ready);
         Btn_ExitRoom.onClick.AddListener(OnClick_ExitRoom);
+        Btn_SelectCharacter.onClick.AddListener(OnClick_SelectCharacter);
     }
 
     private void OnDisable()
@@ -36,6 +38,7 @@ public class UI_Room : MonoBehaviour
      
         Btn_Ready.onClick.RemoveListener(OnClick_Ready);
         Btn_ExitRoom.onClick.RemoveListener(OnClick_ExitRoom);
+        Btn_SelectCharacter.onClick.RemoveListener(OnClick_SelectCharacter);
     }
 
 
@@ -72,15 +75,23 @@ public class UI_Room : MonoBehaviour
         UIManager.Instance.ShowUI(UIPrefab.LobbyUI);
     }
 
+    private void OnClick_SelectCharacter()
+    {
+        UIManager.Instance.ShowUI(UIPrefab.SelectCharacterUI);
+    }
+
     public void UpdatePlayerList()
     {
         Debug.Log("지금이면 안됨");
         ClearPlayerList();
         foreach(NetworkRoomPlayer player in MyNetworkRoomManager.Instance.roomSlots)
         {
+            MyNetworkRoomPlayer myPlayer = player.GetComponent<MyNetworkRoomPlayer>();
+
+
             GameObject roomPlayer = Instantiate(contentRoomPlayerPrefab, Layout_Players);
             UI_RoomPlayer roomPlayerUI = roomPlayer.GetComponent<UI_RoomPlayer>();
-            roomPlayerUI.SetPlayerInfo($"Player{player.index + 1}", player.readyToBegin);
+            roomPlayerUI.SetPlayerInfo($"Player{player.index + 1}", player.readyToBegin, myPlayer.characterIndex);
         }
     }
 

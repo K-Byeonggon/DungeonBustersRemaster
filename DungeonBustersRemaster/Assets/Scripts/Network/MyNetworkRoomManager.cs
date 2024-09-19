@@ -59,6 +59,13 @@ public class MyNetworkRoomManager : NetworkRoomManager
 
 
 
+    public override GameObject OnRoomServerCreateRoomPlayer(NetworkConnectionToClient conn)
+    {
+        GameObject newRoomGameObject = Instantiate(roomPlayerPrefab.gameObject, Vector3.zero, Quaternion.identity);
+        MyNetworkRoomPlayer myRoomPlayer = newRoomGameObject.GetComponent<MyNetworkRoomPlayer>();
+        myRoomPlayer.charIndex = 3;
+        return newRoomGameObject;
+    }
 
 
     public override void OnRoomServerAddPlayer(NetworkConnectionToClient conn)
@@ -130,6 +137,7 @@ public class MyNetworkRoomManager : NetworkRoomManager
 
         if (Utils.IsSceneActive(onlineScene))
         {
+            UIManager.Instance.HideUIWithTimer(UIPrefab.SelectCharacterUI);
             UIManager.Instance.HideUIWithTimer(UIPrefab.RoomUI);
             UIManager.Instance.ShowUI(UIPrefab.LobbyUI);
             UI_Notify.Show("호스트가 연결을 끊어 종료되었습니다.");
@@ -147,5 +155,25 @@ public class MyNetworkRoomManager : NetworkRoomManager
     {
         base.OnRoomClientSceneChanged();
         Debug.Log("이거 불리는지 확인");
+    }
+
+
+
+    public NetworkRoomPlayer GetLocalRoomPlayer()
+    {
+        // NetworkClient.localPlayer는 현재 클라이언트가 소유한 NetworkIdentity입니다.
+        if (NetworkClient.localPlayer != null)
+        {
+            // roomSlots에서 localPlayer와 같은 NetworkIdentity를 가진 RoomPlayer 찾기
+            foreach (NetworkRoomPlayer roomPlayer in roomSlots)
+            {
+                if (roomPlayer != null && roomPlayer.netIdentity == NetworkClient.localPlayer)
+                {
+                    return roomPlayer; // 로컬 플레이어 반환
+                }
+            }
+        }
+
+        return null; // 찾지 못한 경우 null 반환
     }
 }

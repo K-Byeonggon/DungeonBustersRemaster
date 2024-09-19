@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using Mirror;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,28 +6,41 @@ using UnityEngine;
 
 public class MyNetworkRoomPlayer : NetworkRoomPlayer
 {
-    private void Awake()
+    public override void Start()
     {
-        Debug.Log("지금");
+        base.Start();
+        Debug.Log("Start는 언제임");
+        NotifyInitializedNextFrame().Forget();
+    }
+
+
+    public override void OnStartClient()
+    {
+        Debug.Log("StartClient는 언제임");
+        base.OnStartClient();
+    }
+
+    public override void OnStopClient()
+    {
+        base.OnStopClient();
     }
 
     public override void OnClientEnterRoom()
     {
+        Debug.Log("ClientEnterRoom은 언제임");
         base.OnClientEnterRoom();
+    }
 
+    private async UniTaskVoid NotifyInitializedNextFrame()
+    {
+        await UniTask.Yield(PlayerLoopTiming.Update);
+
+        MyNetworkRoomManager.Instance.NotifyPlayerInitialized();
+    }
+
+    public override void ReadyStateChanged(bool oldReadyState, bool newReadyState)
+    {
         UI_Room roomUI = UIManager.Instance.GetActiveUI(UIPrefab.RoomUI).GetComponent<UI_Room>();
-        if (roomUI != null)
-        {
-            roomUI.ClearLayout();
-
-            //룸 UI의 Layout에 플레이어 채우기
-            GameObject roomPlayerUIPrefab = UIManager.Instance.JustGetUIPrefab(UIPrefab.Content_RoomPlayer);
-
-            GameObject roomPlayer = Instantiate(roomPlayerUIPrefab, roomUI.Layout_RoomPlayers);
-
-            UI_RoomPlayer roomPlayerUI = roomPlayer.GetComponent<UI_RoomPlayer>();
-
-            roomPlayerUI.SetPlayerInfo($"Player{index+1}", readyToBegin);
-        }
+        roomUI.UpdatePlayerList();
     }
 }

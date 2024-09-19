@@ -1,12 +1,17 @@
 using Mirror;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class UI_Room : MonoBehaviour
 {
     [SerializeField] Transform Layout_Players;
     [SerializeField] Button Btn_Ready;
+    [SerializeField] TextMeshProUGUI Text_Ready;
     [SerializeField] Button Btn_ExitRoom;
+
+    private NetworkRoomPlayer localRoomPlayer;
 
     public Transform Layout_RoomPlayers
     {
@@ -19,9 +24,7 @@ public class UI_Room : MonoBehaviour
     {
         contentRoomPlayerPrefab = UIManager.Instance.JustGetUIPrefab(UIPrefab.Content_RoomPlayer);
 
-
-        //MyNetworkRoomManager.Instance.OnPlayerAdded += UpdatePlayerList;
-        //MyNetworkRoomManager.Instance.OnPlayerRemoved += UpdatePlayerList;
+        MyNetworkRoomManager.Instance.OnRoomPlayersUpdated += UpdatePlayerList;
 
         Btn_Ready.onClick.AddListener(OnClick_Ready);
         Btn_ExitRoom.onClick.AddListener(OnClick_ExitRoom);
@@ -29,25 +32,55 @@ public class UI_Room : MonoBehaviour
 
     private void OnDisable()
     {
-        //MyNetworkRoomManager.Instance.OnPlayerAdded -= UpdatePlayerList;
-        //MyNetworkRoomManager.Instance.OnPlayerRemoved -= UpdatePlayerList;
-
+        MyNetworkRoomManager.Instance.OnRoomPlayersUpdated -= UpdatePlayerList;
+     
         Btn_Ready.onClick.RemoveListener(OnClick_Ready);
         Btn_ExitRoom.onClick.RemoveListener(OnClick_ExitRoom);
     }
 
-    #region roomManager
 
 
 
-    /*
-    private void UpdatePlayerList()
+    private void OnClick_Ready()
     {
-        ClearPlayerList();
-
-        foreach(var conn in NetworkServer.connections.Values)
+        if(localRoomPlayer == null)
         {
-            GameObject playerUI = Instantiate(contentRoomPlayerPrefab, Layout_Players);
+            localRoomPlayer = NetworkClient.connection?.identity?.GetComponent<NetworkRoomPlayer>();
+        }
+
+        if(localRoomPlayer != null)
+        {
+            localRoomPlayer.CmdChangeReadyState(!localRoomPlayer.readyToBegin);
+            Text_Ready.text = localRoomPlayer.readyToBegin ? "준비해제" : "준비";
+        }
+    }
+
+    private void OnClick_ExitRoom()
+    {
+        if (NetworkServer.active && NetworkClient.active)
+        {
+            MyNetworkRoomManager.Instance.StopHost();
+        }
+        else if (NetworkClient.active)
+        {
+            MyNetworkRoomManager.Instance.StopClient();
+        }
+
+        SceneManager.LoadScene(MyNetworkRoomManager.Instance.offlineScene);
+
+        UIManager.Instance.HideUIWithTimer(UIPrefab.RoomUI);
+        UIManager.Instance.ShowUI(UIPrefab.LobbyUI);
+    }
+
+    public void UpdatePlayerList()
+    {
+        Debug.Log("지금이면 안됨");
+        ClearPlayerList();
+        foreach(NetworkRoomPlayer player in MyNetworkRoomManager.Instance.roomSlots)
+        {
+            GameObject roomPlayer = Instantiate(contentRoomPlayerPrefab, Layout_Players);
+            UI_RoomPlayer roomPlayerUI = roomPlayer.GetComponent<UI_RoomPlayer>();
+            roomPlayerUI.SetPlayerInfo($"Player{player.index + 1}", player.readyToBegin);
         }
     }
 
@@ -57,25 +90,5 @@ public class UI_Room : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-    }
-    */
-    #endregion
-
-    public void ClearLayout()
-    {
-        foreach(Transform child in Layout_Players)
-        {
-            Destroy(child.gameObject);
-        }
-    }
-
-    private void OnClick_Ready()
-    {
-
-    }
-
-    private void OnClick_ExitRoom()
-    {
-
     }
 }

@@ -1,24 +1,34 @@
 using Cysharp.Threading.Tasks;
 using kcp2k;
+using Mirror;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 //UI 프리펩을 만들고 프리펩 이름을 UIPrefab에 추가할 것.
 public enum UIPrefab
 {
+    //임시
     TempUI,
     TempUI2,
+
+    //어디서든
+    NotifyUI,
+
+    //타이틀
     TitleUI,
+
+    //Lobby(Offline) Scene
     LobbyUI,
-    RoomUI,
     ClientConnectUI,
     SetPlayerNumUI,
     ClientDisconnectUI,
 
-    //Content들
+    //Room(Online) Scene
+    RoomUI,
     Content_RoomPlayer
 
 }
@@ -37,6 +47,7 @@ public class UIManager : Singleton<UIManager>
     private Dictionary<string, GameObject> activeUIs = new Dictionary<string, GameObject>();
     private Dictionary<string, CancellationTokenSource> removeTimers = new Dictionary<string, CancellationTokenSource>();
     private Dictionary<string, Stack<GameObject>> uiPool = new Dictionary<string, Stack<GameObject>>();
+    private Dictionary<string, Stack<UIPrefab>> sceneUIs = new Dictionary<string, Stack<UIPrefab>>(); 
 
     private const float UI_REMOVE_DELAY = 7f;
 
@@ -85,6 +96,9 @@ public class UIManager : Singleton<UIManager>
                 CancelUITimer(instanceName);
             }
         }
+
+        //Scene 등록
+        RegisterSceneUI(uiPrefab);
     }
 
     private GameObject GetOrCreateUIInstance(GameObject prefab, string instanceName)
@@ -129,7 +143,6 @@ public class UIManager : Singleton<UIManager>
                 uiPool[instanceName] = new Stack<GameObject>();
             }
             uiPool[instanceName].Push(uiInstance);
-            //uiPool.Push(uiInstance);
         }
 
     }
@@ -144,6 +157,19 @@ public class UIManager : Singleton<UIManager>
         {
             uiInstance.SetActive(false);
             StartRemoveUITimer(instanceName);
+        }
+    }
+
+    //그냥 UI를 파괴한다. (씬전환시 필요없거나 초기화되어야하는 UI들에 사용)
+    public void DestroyUI(UIPrefab uiPrefab)
+    {
+        string uiName = uiPrefab.GetPrefabName();
+        string instanceName = $"@UI_{uiName}";
+
+        if (activeUIs.TryGetValue(instanceName, out var uiInstance))
+        {
+            UnityEngine.Object.Destroy(uiInstance);
+            activeUIs.Remove(instanceName);
         }
     }
 
@@ -215,5 +241,34 @@ public class UIManager : Singleton<UIManager>
         }
 
         return prefab;
+    }
+
+    //Scene별로 UI 등록하기. ShowUI할때 SceneName으로 정리한다.
+    private void RegisterSceneUI(UIPrefab uiPrefab)
+    {
+        string sceneName = NetworkManager.networkSceneName;
+        string uiName = uiPrefab.GetPrefabName();
+        string instanceName = $"@UI_{uiName}";
+
+        if (activeUIs.TryGetValue(instanceName, out var uiInstance))
+        {
+            if (!sceneUIs.ContainsKey(sceneName))
+            {
+                sceneUIs[sceneName] = new Stack<UIPrefab>();
+            }
+            sceneUIs[sceneName].Push(uiPrefab);
+        }
+    }
+
+    //Scene에 등록된 UI전부 제거하기
+    public void DestroySceneUI(string sceneName)
+    {
+        if (sceneUIs.ContainsKey(sceneName))
+        {
+            foreach (var uiPrefab in sceneUIs[sceneName])
+            {
+                DestroyUI(uiPrefab);
+            }
+        }
     }
 }

@@ -51,6 +51,15 @@ public class MyNetworkRoomManager : NetworkRoomManager
 
     }
 
+    public override void OnRoomClientSceneChanged()
+    {
+        if (Utils.IsSceneActive(GameplayScene))
+        {
+            UIManager.Instance.HideUIWithTimer(UIPrefab.SelectCharacterUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.RoomUI);
+        }
+    }
+
     public override void OnClientChangeScene(string newSceneName, SceneOperation sceneOperation, bool customHandling)
     {
         base.OnClientChangeScene(newSceneName, sceneOperation, customHandling);
@@ -63,7 +72,8 @@ public class MyNetworkRoomManager : NetworkRoomManager
     {
         GameObject newRoomGameObject = Instantiate(roomPlayerPrefab.gameObject, Vector3.zero, Quaternion.identity);
         MyNetworkRoomPlayer myRoomPlayer = newRoomGameObject.GetComponent<MyNetworkRoomPlayer>();
-        myRoomPlayer.charIndex = 3;
+        //Lobby Scene에서 캐릭터를 고른다면, 여기에서 MyNetworkManager 등에 저장된 캐릭터index를 넣어줄것
+
         return newRoomGameObject;
     }
 
@@ -145,17 +155,31 @@ public class MyNetworkRoomManager : NetworkRoomManager
     }
 
 
+    //GameScene에 GamePlayer 생성
+    public override GameObject OnRoomServerCreateGamePlayer(NetworkConnectionToClient conn, GameObject roomPlayer)
+    {
+        MethodName.DebugLog();
+
+        Transform startPos = GetStartPosition();
+        GameObject gamePlayer = startPos != null
+            ? Instantiate(playerPrefab, startPos.position, startPos.rotation)
+            : Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
+
+        MyPlayer myGamePlayer = gamePlayer.GetComponent<MyPlayer>();
+
+        //서버에서 바로 characterIndex 설정
+        int characterIndex = PlayerDataManager.Instance.GetCharacterIndex(conn.identity.netId);
+        myGamePlayer.characterIndex = characterIndex;
+
+        return gamePlayer;
+    }
+
     public override void OnClientSceneChanged()
     {
         base.OnClientSceneChanged();
         Debug.Log("이건 불리는지 확인");
     }
 
-    public override void OnRoomClientSceneChanged()
-    {
-        base.OnRoomClientSceneChanged();
-        Debug.Log("이거 불리는지 확인");
-    }
 
 
 
@@ -176,4 +200,7 @@ public class MyNetworkRoomManager : NetworkRoomManager
 
         return null; // 찾지 못한 경우 null 반환
     }
+
+
+
 }

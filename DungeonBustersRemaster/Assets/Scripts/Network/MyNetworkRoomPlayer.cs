@@ -9,8 +9,6 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
     [SyncVar(hook = nameof(CharacterIndexChanged))]
     public int characterIndex;
 
-    public int charIndex;
-
     public override void Start()
     {
         base.Start();
@@ -27,7 +25,8 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
 
     public override void OnStopClient()
     {
-        base.OnStopClient();
+        uint netId = GetComponent<NetworkIdentity>().netId;
+        PlayerDataManager.Instance.RemovePlayerData(netId);
     }
 
     public override void OnClientEnterRoom()
@@ -49,6 +48,7 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
         roomUI.UpdatePlayerList();
     }
 
+ 
 
 
     #region commands
@@ -68,7 +68,9 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
 
     private void CharacterIndexChanged(int oldIndex, int newIndex)
     {
-        Debug.Log($"{oldIndex} -> {newIndex}");
+        uint netId = GetComponent<NetworkIdentity>().netId;
+        PlayerDataManager.Instance.SetCharacterIndex(netId, newIndex);
+
         UI_Room roomUI = UIManager.Instance.GetActiveUI(UIPrefab.RoomUI).GetComponent<UI_Room>();
         roomUI.UpdatePlayerList();
     }

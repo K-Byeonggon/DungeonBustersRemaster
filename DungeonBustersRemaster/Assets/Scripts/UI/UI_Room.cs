@@ -53,8 +53,8 @@ public class UI_Room : MonoBehaviour
 
         if(localRoomPlayer != null)
         {
+            Text_Ready.text = localRoomPlayer.readyToBegin ? "준비" : "준비해제";
             localRoomPlayer.CmdChangeReadyState(!localRoomPlayer.readyToBegin);
-            Text_Ready.text = localRoomPlayer.readyToBegin ? "준비해제" : "준비";
         }
     }
 
@@ -82,7 +82,6 @@ public class UI_Room : MonoBehaviour
 
     public void UpdatePlayerList()
     {
-        Debug.Log("지금이면 안됨");
         ClearPlayerList();
         foreach(NetworkRoomPlayer player in MyNetworkRoomManager.Instance.roomSlots)
         {

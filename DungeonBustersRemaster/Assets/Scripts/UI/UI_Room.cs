@@ -11,6 +11,7 @@ public class UI_Room : MonoBehaviour
     [SerializeField] TextMeshProUGUI Text_Ready;
     [SerializeField] Button Btn_ExitRoom;
     [SerializeField] Button Btn_SelectCharacter;
+    [SerializeField] Button Btn_ChangeName;
 
     private NetworkRoomPlayer localRoomPlayer;
 
@@ -30,6 +31,7 @@ public class UI_Room : MonoBehaviour
         Btn_Ready.onClick.AddListener(OnClick_Ready);
         Btn_ExitRoom.onClick.AddListener(OnClick_ExitRoom);
         Btn_SelectCharacter.onClick.AddListener(OnClick_SelectCharacter);
+        Btn_ChangeName.onClick.AddListener(OnClick_ChangeName);
     }
 
     private void OnDisable()
@@ -39,6 +41,7 @@ public class UI_Room : MonoBehaviour
         Btn_Ready.onClick.RemoveListener(OnClick_Ready);
         Btn_ExitRoom.onClick.RemoveListener(OnClick_ExitRoom);
         Btn_SelectCharacter.onClick.RemoveListener(OnClick_SelectCharacter);
+        Btn_ChangeName.onClick.RemoveListener(OnClick_ChangeName);
     }
 
 
@@ -80,6 +83,11 @@ public class UI_Room : MonoBehaviour
         UIManager.Instance.ShowUI(UIPrefab.SelectCharacterUI);
     }
 
+    private void OnClick_ChangeName()
+    {
+        UIManager.Instance.ShowUI(UIPrefab.ChangeNameUI);
+    }
+
     public void UpdatePlayerList()
     {
         ClearPlayerList();
@@ -90,7 +98,8 @@ public class UI_Room : MonoBehaviour
 
             GameObject roomPlayer = Instantiate(contentRoomPlayerPrefab, Layout_Players);
             UI_RoomPlayer roomPlayerUI = roomPlayer.GetComponent<UI_RoomPlayer>();
-            roomPlayerUI.SetPlayerInfo($"Player{player.index + 1}", player.readyToBegin, myPlayer.characterIndex);
+            string playerName = string.IsNullOrWhiteSpace(myPlayer.nickname) ? $"Player{player.index + 1}" : myPlayer.nickname;
+            roomPlayerUI.SetPlayerInfo(playerName, player.readyToBegin, myPlayer.characterIndex);
         }
     }
 

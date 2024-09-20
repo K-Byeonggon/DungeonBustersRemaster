@@ -56,6 +56,7 @@ public class MyNetworkRoomManager : NetworkRoomManager
         if (Utils.IsSceneActive(GameplayScene))
         {
             UIManager.Instance.HideUIWithTimer(UIPrefab.SelectCharacterUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.ChangeNameUI);
             UIManager.Instance.HideUIWithTimer(UIPrefab.RoomUI);
         }
     }

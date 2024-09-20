@@ -9,6 +9,9 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
     [SyncVar(hook = nameof(CharacterIndexChanged))]
     public int characterIndex;
 
+    [SyncVar(hook = nameof(NicknameChanged))]
+    public string nickname;
+
     public override void Start()
     {
         base.Start();
@@ -48,15 +51,22 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
         roomUI.UpdatePlayerList();
     }
 
- 
+
 
 
     #region commands
-    
+
     [Command]
     public void CmdChangeCharacterIndex(int index)
     {
         characterIndex = index;
+    }
+
+
+    [Command]
+    public void CmdChangeNickName(string name)
+    {
+        nickname = name;
     }
 
     #endregion
@@ -71,6 +81,12 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
         uint netId = GetComponent<NetworkIdentity>().netId;
         PlayerDataManager.Instance.SetCharacterIndex(netId, newIndex);
 
+        UI_Room roomUI = UIManager.Instance.GetActiveUI(UIPrefab.RoomUI).GetComponent<UI_Room>();
+        roomUI.UpdatePlayerList();
+    }
+
+    private void NicknameChanged(string oldName, string  newName)
+    {
         UI_Room roomUI = UIManager.Instance.GetActiveUI(UIPrefab.RoomUI).GetComponent<UI_Room>();
         roomUI.UpdatePlayerList();
     }

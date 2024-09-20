@@ -168,9 +168,11 @@ public class MyNetworkRoomManager : NetworkRoomManager
 
         MyPlayer myGamePlayer = gamePlayer.GetComponent<MyPlayer>();
 
-        //서버에서 바로 characterIndex 설정
+        //서버에서 바로 playerInfo 설정
         int characterIndex = PlayerDataManager.Instance.GetCharacterIndex(conn.identity.netId);
         myGamePlayer.characterIndex = characterIndex;
+        string nickname = PlayerDataManager.Instance.GetNickname(conn.identity.netId);
+        myGamePlayer.nickname = nickname;
 
         return gamePlayer;
     }

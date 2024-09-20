@@ -2,37 +2,57 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public struct PlayerData
+{
+    public int characterIndex;
+    public string nickname;
+
+    public PlayerData(int characterIndex, string nickname)
+    {
+        this.characterIndex = characterIndex;
+        this.nickname = nickname;
+    }
+}
+
 public class PlayerDataManager : Singleton<PlayerDataManager>
 {
-    //Room에서 고른 캐릭터의 index가 netId를 키로 저장된다. 
-    //나중에는 이름도 저장해야할 수 있어서, index대신 PlayerData 클래스를 Value로 저장할 수도 있다.
-    private Dictionary<uint, int> playerCharacterIndex = new Dictionary<uint, int>();
+    private Dictionary<uint, PlayerData> playerData = new Dictionary<uint, PlayerData>();
 
-    public void SetCharacterIndex(uint netId, int characterIndex)
+    public void SetPlayerData(uint netId, int characterIndex, string nickname)
     {
-        playerCharacterIndex[netId] = characterIndex;
+        playerData[netId] = new PlayerData(characterIndex, nickname);
     }
 
     public int GetCharacterIndex(uint netId)
     {
-        if (!playerCharacterIndex.ContainsKey(netId))
+        if (!playerData.ContainsKey(netId))
         {
-            SetCharacterIndex(netId, 0);
+            SetPlayerData(netId, -1, "Unknown");
         }
 
-        return playerCharacterIndex.ContainsKey(netId) ? playerCharacterIndex[netId] : -1;
+        return playerData[netId].characterIndex;
+    }
+
+    public string GetNickname(uint netId)
+    {
+        if (!playerData.ContainsKey(netId))
+        {
+            SetPlayerData(netId, -1, "Unknown");
+        }
+
+        return playerData[netId].nickname;
     }
 
     public void RemovePlayerData(uint netId)
     {
-        if (playerCharacterIndex.ContainsKey(netId))
+        if (playerData.ContainsKey(netId))
         {
-            playerCharacterIndex.Remove(netId);
+            playerData.Remove(netId);
         }
     }
 
     public void ClearAllData()
     {
-        playerCharacterIndex.Clear();
+        playerData.Clear();
     }
 }

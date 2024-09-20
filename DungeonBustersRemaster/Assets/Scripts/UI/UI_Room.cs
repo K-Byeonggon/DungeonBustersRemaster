@@ -98,8 +98,7 @@ public class UI_Room : MonoBehaviour
 
             GameObject roomPlayer = Instantiate(contentRoomPlayerPrefab, Layout_Players);
             UI_RoomPlayer roomPlayerUI = roomPlayer.GetComponent<UI_RoomPlayer>();
-            string playerName = string.IsNullOrWhiteSpace(myPlayer.nickname) ? $"Player{player.index + 1}" : myPlayer.nickname;
-            roomPlayerUI.SetPlayerInfo(playerName, player.readyToBegin, myPlayer.characterIndex);
+            roomPlayerUI.SetPlayerInfo(myPlayer.nickname, player.readyToBegin, myPlayer.characterIndex);
         }
     }
 

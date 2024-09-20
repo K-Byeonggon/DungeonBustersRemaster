@@ -62,6 +62,13 @@ public class UI_ChangeName : MonoBehaviour
         //RoomPlayer의 Name 변경(아무튼 characterIndex처럼 동작)
         NetworkRoomPlayer roomPlayer = MyNetworkRoomManager.Instance.GetLocalRoomPlayer();
         MyNetworkRoomPlayer myRoomPlayer = roomPlayer.GetComponent<MyNetworkRoomPlayer>();
+
+        //newName검사
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            newName = $"Player{roomPlayer.index + 1}";
+        }
+
         myRoomPlayer.CmdChangeNickName(newName);
 
         UIManager.Instance.HideUIWithTimer(UIPrefab.ChangeNameUI);
@@ -90,6 +97,6 @@ public class UI_ChangeName : MonoBehaviour
         name_Adjective = Enum.ToObject(typeof(Adjective), adjNum).ToString();
         name_Noun = Enum.ToObject(typeof(Noun), nounNum).ToString();
         string name = name_Adjective + " " + name_Noun;
-        return string.IsNullOrWhiteSpace(name) ? string.Empty : name;
+        return name;
     }
 }

@@ -15,7 +15,11 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
     public override void Start()
     {
         base.Start();
-        Debug.Log("Start는 언제임");
+
+        string defalutName = $"Player{index + 1}";
+        CmdChangeCharacterIndex(0);
+        CmdChangeNickName(defalutName);
+
         NotifyInitializedNextFrame().Forget();
     }
 
@@ -79,7 +83,7 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
     private void CharacterIndexChanged(int oldIndex, int newIndex)
     {
         uint netId = GetComponent<NetworkIdentity>().netId;
-        PlayerDataManager.Instance.SetCharacterIndex(netId, newIndex);
+        PlayerDataManager.Instance.SetPlayerData(netId, newIndex, nickname);
 
         UI_Room roomUI = UIManager.Instance.GetActiveUI(UIPrefab.RoomUI).GetComponent<UI_Room>();
         roomUI.UpdatePlayerList();
@@ -87,6 +91,9 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
 
     private void NicknameChanged(string oldName, string  newName)
     {
+        uint netId = GetComponent<NetworkIdentity>().netId;
+        PlayerDataManager.Instance.SetPlayerData(netId, characterIndex, newName);
+
         UI_Room roomUI = UIManager.Instance.GetActiveUI(UIPrefab.RoomUI).GetComponent<UI_Room>();
         roomUI.UpdatePlayerList();
     }

@@ -39,7 +39,6 @@ public class UI_SelectCharacter : MonoBehaviour
     {
         Debug.Log($"{index}번 캐릭터 선택");
         //여기서 MyNetworkRoomPlayer의 characterIndex 변경. 
-        //어캐가져오지
         NetworkRoomPlayer roomPlayer = MyNetworkRoomManager.Instance.GetLocalRoomPlayer();
         MyNetworkRoomPlayer myRoomPlayer = roomPlayer.GetComponent<MyNetworkRoomPlayer>();
         myRoomPlayer.CmdChangeCharacterIndex(index);

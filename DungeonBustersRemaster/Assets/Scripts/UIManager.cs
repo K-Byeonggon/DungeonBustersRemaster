@@ -98,9 +98,6 @@ public class UIManager : Singleton<UIManager>
                 CancelUITimer(instanceName);
             }
         }
-
-        //Scene 등록
-        RegisterSceneUI(uiPrefab);
     }
 
     private GameObject GetOrCreateUIInstance(GameObject prefab, string instanceName)
@@ -245,32 +242,4 @@ public class UIManager : Singleton<UIManager>
         return prefab;
     }
 
-    //Scene별로 UI 등록하기. ShowUI할때 SceneName으로 정리한다.
-    private void RegisterSceneUI(UIPrefab uiPrefab)
-    {
-        string sceneName = NetworkManager.networkSceneName;
-        string uiName = uiPrefab.GetPrefabName();
-        string instanceName = $"@UI_{uiName}";
-
-        if (activeUIs.TryGetValue(instanceName, out var uiInstance))
-        {
-            if (!sceneUIs.ContainsKey(sceneName))
-            {
-                sceneUIs[sceneName] = new Stack<UIPrefab>();
-            }
-            sceneUIs[sceneName].Push(uiPrefab);
-        }
-    }
-
-    //Scene에 등록된 UI전부 제거하기
-    public void DestroySceneUI(string sceneName)
-    {
-        if (sceneUIs.ContainsKey(sceneName))
-        {
-            foreach (var uiPrefab in sceneUIs[sceneName])
-            {
-                DestroyUI(uiPrefab);
-            }
-        }
-    }
 }

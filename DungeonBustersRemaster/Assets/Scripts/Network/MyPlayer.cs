@@ -2,10 +2,24 @@ using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+
+public enum PlayerColor
+{
+    RED,
+    GREEN,
+    YELLOW,
+    BLUE,
+    PURPLE
+}
 
 public class MyPlayer : NetworkBehaviour
 {
-    [SerializeField] List<GameObject> characterModels;
+    [SerializeField] List<GameObject> CharacterModels;
+    [SerializeField] List<Sprite> Sprite_CharacterIcon;
+    private Image Img_CharacterIcon;
+    private PlayerColor PlayerColor;
+
 
     [SyncVar(hook = nameof(CharacterIndexChanged))]
     public int characterIndex;
@@ -16,14 +30,19 @@ public class MyPlayer : NetworkBehaviour
 
     private void SetCharacterModel(int characterIndex)
     {
-        foreach (var characterModel in characterModels)
+        foreach (var characterModel in CharacterModels)
         {
             characterModel.SetActive(false);
         }
 
         if (characterIndex == -1) return;
 
-        characterModels[characterIndex].SetActive(true);
+        CharacterModels[characterIndex].SetActive(true);
+    }
+
+    private void SetCharacterIcon(int characterIndex)
+    {
+        Img_CharacterIcon.sprite = Sprite_CharacterIcon[characterIndex];
     }
 
     private void SetNickName(string name)
@@ -33,6 +52,7 @@ public class MyPlayer : NetworkBehaviour
 
     #region commands
 
+    //GamePlayer생성 후 불린다.
     [Command]
     public void CmdChangeCharacterIndex(int index)
     {
@@ -55,6 +75,7 @@ public class MyPlayer : NetworkBehaviour
 
         //플레이어 모델링 바꾸기
         SetCharacterModel(newIndex);
+        SetCharacterIcon(newIndex);
     }
 
     private void NicknameChanged(string oldName, string newName)

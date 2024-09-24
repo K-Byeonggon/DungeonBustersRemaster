@@ -9,7 +9,7 @@ public class UI_GameScene : MonoBehaviour
 
     [SerializeField] Panel_MonsterInfo Panel_MonsterInfo;
     [SerializeField] Panel_PlayerInfo Panel_PlayerInfo;
-
+    [SerializeField] Panel_SelectCard Panel_SelectCard;
 
     private void OnEnable()
     {
@@ -56,6 +56,14 @@ public class UI_GameScene : MonoBehaviour
     public void RemovePlayerInfo(uint netId)
     {
         Panel_PlayerInfo.RemovePlayerInfo(netId);
+    }
+    #endregion
+
+    #region Panel_SelectCard
+
+    public void UpdateSelectedCard()
+    {
+        Panel_SelectCard.UpdateSelectedCard();
     }
     #endregion
 }

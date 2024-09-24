@@ -34,7 +34,9 @@ public enum UIPrefab
     ChangeNameUI,
 
     //GamePlay Scene
-    GameSceneUI
+    GameSceneUI,
+    SelectCardUI,
+    Content_Card
 
 }
 

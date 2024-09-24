@@ -11,9 +11,8 @@ public class Content_Card : MonoBehaviour
     [SerializeField] Button Btn_Card;
     [SerializeField] TextMeshProUGUI Text_CardNum;
 
-    [SerializeField] List<Sprite> cardImgs;
-
-    private Action onClickAction;
+    private Action<int> onClickAction;
+    private int actionNum;
 
     private void OnEnable()
     {
@@ -29,7 +28,7 @@ public class Content_Card : MonoBehaviour
 
     private void OnClick_Card()
     {
-        onClickAction?.Invoke();
+        onClickAction?.Invoke(actionNum);
     }
 
     public void SetCardNum(int cardNum)
@@ -39,16 +38,17 @@ public class Content_Card : MonoBehaviour
 
     public void SetCardImg(PlayerColor color)
     {
-        Img_Card.sprite = cardImgs[(int)color];
+        Img_Card.sprite = SpriteManager.Instance.GetCardSprite(color);
     }
 
     public void SetActiveButton(bool setActive)
     {
-        Btn_Card.gameObject.SetActive(setActive);
+        Btn_Card.enabled = setActive;
     }
 
-    public void SetClickAction(Action onClickAction)
+    public void SetClickAction(Action<int> onClickAction, int actionNum)
     {
         this.onClickAction = onClickAction;
+        this.actionNum = actionNum;
     }
 }

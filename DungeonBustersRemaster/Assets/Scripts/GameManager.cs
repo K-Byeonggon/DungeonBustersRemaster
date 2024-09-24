@@ -11,7 +11,8 @@ public class GameManager : SingletonMono<GameManager>
         {
             await UniTask.WhenAll
             (
-                UIManager.Instance.LoadAllUIPrefabs()
+                UIManager.Instance.LoadAllUIPrefabs(),
+                SpriteManager.Instance.LoadAllSprites()
             );
 
             UIManager.Instance.ShowUI(UIPrefab.TitleUI);

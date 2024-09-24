@@ -18,12 +18,17 @@ public class MyPlayerGameData : NetworkBehaviour
 
     private UI_GameScene gameSceneUI;
 
+    private int selectedCardNum;
 
     public List<int> Hands => hands.ToList();
     public List<int> Gems => gems.ToList();
     public List<int> UsedCards => usedCards.ToList();
 
-
+    public int SelectedCardNum
+    {
+        get { return selectedCardNum; }
+        set { selectedCardNum = value; }
+    }
 
     public override void OnStartClient()
     {

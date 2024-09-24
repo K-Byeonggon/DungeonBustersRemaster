@@ -1,18 +1,30 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Panel_PlayerInfo : MonoBehaviour
 {
     [SerializeField] Button Btn_Open;
+    [SerializeField] TextMeshProUGUI Text_OpenBtn;
     [SerializeField] Transform Layout_PlayerInfo;
     [SerializeField] GameObject Prefab_PanelGamePlayer;
+
+    private RectTransform uiPanel;
+    private bool IsOpened;
+
+    private const float OpenDuration = 1.0f;
+ 
 
     private Dictionary<uint, Panel_GamePlayer> PlayerPanels = new Dictionary<uint, Panel_GamePlayer>();
 
     private void OnEnable()
     {
+        uiPanel = GetComponent<RectTransform>();
+        IsOpened = false;
+
         Btn_Open.onClick.AddListener(OnClick_Open);
     }
 
@@ -23,7 +35,24 @@ public class Panel_PlayerInfo : MonoBehaviour
 
     private void OnClick_Open()
     {
-        //UI가 미끄러지듯 화면 밖에서 화면안으로 들어옴.
+        IsOpened = !IsOpened;
+
+        MovePanel();
+
+    }
+
+    private void MovePanel()
+    {
+        if(IsOpened)
+        {
+            uiPanel.DOAnchorPos(new Vector2(640f, 0f), OpenDuration).SetEase(Ease.OutQuad);
+            Text_OpenBtn.text = "<";
+        }
+        else
+        {
+            uiPanel.DOAnchorPos(new Vector2(0f, 0f), OpenDuration).SetEase(Ease.OutQuad);
+            Text_OpenBtn.text = ">";
+        }
     }
 
     public void SetPlayerInfo(uint netId)

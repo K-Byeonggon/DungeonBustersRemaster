@@ -220,7 +220,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 641, y: 0}
+  m_AnchoredPosition: {x: 640, y: 0}
   m_SizeDelta: {x: 616, y: 0}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &3074145658717369615
@@ -274,6 +274,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Btn_Open: {fileID: 3850108074545913049}
+  Text_OpenBtn: {fileID: 2735277103824254717}
   Layout_PlayerInfo: {fileID: 8738495279520582947}
   Prefab_PanelGamePlayer: {fileID: 2445624452137274674, guid: d48fedaa3a1e4604f93bcdd061c32aa1, type: 3}
 --- !u!1 &7183533008048712439
@@ -288,7 +289,7 @@ GameObject:
   - component: {fileID: 1665363774987567425}
   - component: {fileID: 2735277103824254717}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Text_OpenBtn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -341,7 +342,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '>'
+  m_text: <
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 9f7119a2364ec1c4987f4fe89b925016, type: 2}
   m_sharedMaterial: {fileID: -1871709415104131384, guid: 9f7119a2364ec1c4987f4fe89b925016, type: 2}

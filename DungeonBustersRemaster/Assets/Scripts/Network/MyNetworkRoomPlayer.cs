@@ -7,7 +7,7 @@ using UnityEngine;
 public class MyNetworkRoomPlayer : NetworkRoomPlayer
 {
     [SyncVar(hook = nameof(CharacterIndexChanged))]
-    public int characterIndex;
+    public int characterIndex = -1;
 
     [SyncVar(hook = nameof(NicknameChanged))]
     public string nickname;

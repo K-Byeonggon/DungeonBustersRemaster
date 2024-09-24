@@ -14,16 +14,18 @@ public class StartDungeonState : IGameState
     public void Enter()
     {
         Debug.Log("Entering StartDungeon State");
+        gameLogicManager.OnAllPlayersEnteredDungeon += OnAllPlayersEnteredDungeon;
     }
 
-    public void Update()
-    {
-        //
-    }
 
     public void Exit()
     {
         Debug.Log("Exiting StartDungeon State");
+        gameLogicManager.OnAllPlayersEnteredDungeon -= OnAllPlayersEnteredDungeon;
     }
 
+    private void OnAllPlayersEnteredDungeon()
+    {
+        gameLogicManager.ChangeState(GameState.StartStage);
+    }
 }

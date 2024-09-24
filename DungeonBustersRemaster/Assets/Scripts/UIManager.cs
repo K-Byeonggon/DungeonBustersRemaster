@@ -31,7 +31,10 @@ public enum UIPrefab
     RoomUI,
     Content_RoomPlayer,
     SelectCharacterUI,
-    ChangeNameUI
+    ChangeNameUI,
+
+    //GamePlay Scene
+    GameSceneUI
 
 }
 

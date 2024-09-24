@@ -1,4 +1,5 @@
 using Mirror;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -29,6 +30,10 @@ public class GameLogicManager : NetworkBehaviour
     private GameState currentState;
 
     private Dictionary<GameState, IGameState> gameStates;
+
+    //이벤트들(State를 바꾸는 트리거)
+    public event Action OnAllPlayersEnteredDungeon;
+
 
     private void Awake()
     {
@@ -77,11 +82,5 @@ public class GameLogicManager : NetworkBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (gameStates.ContainsKey(currentState))
-        {
-            gameStates[currentState].Update();
-        }
-    }
+
 }

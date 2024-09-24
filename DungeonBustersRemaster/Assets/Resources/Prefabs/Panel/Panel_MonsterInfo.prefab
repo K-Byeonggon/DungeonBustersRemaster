@@ -1847,6 +1847,7 @@ GameObject:
   - component: {fileID: 7870636781419563194}
   - component: {fileID: 6844356960285685264}
   - component: {fileID: 5240139772622442537}
+  - component: {fileID: 4043488150866229805}
   m_Layer: 5
   m_Name: Panel_MonsterInfo
   m_TagString: Untagged
@@ -1914,3 +1915,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4043488150866229805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8853393625183012055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcac6cb16c612f645871f6c676693bd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Text_MonsterName: {fileID: 8974377201737883974}
+  Text_MonsterHP: {fileID: 3415164578122857422}
+  Layout_Reward: {fileID: 4284681855435898841}

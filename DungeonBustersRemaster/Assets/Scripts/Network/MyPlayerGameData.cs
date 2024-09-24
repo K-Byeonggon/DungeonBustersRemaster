@@ -1,10 +1,12 @@
 using Mirror;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class MyPlayerGameData : NetworkBehaviour
 {
+
     //hands : 아직 사용하지 않은 플레이어가 가진 카드들
     private readonly SyncList<int> hands = new SyncList<int>();
 
@@ -14,18 +16,39 @@ public class MyPlayerGameData : NetworkBehaviour
     //usedCards : 플레이어가 사용한 카드들
     private readonly SyncList<int> usedCards = new SyncList<int>();
 
+    private UI_GameScene gameSceneUI;
+
+
+    public List<int> Hands => hands.ToList();
+    public List<int> Gems => gems.ToList();
+    public List<int> UsedCards => usedCards.ToList();
+
+
+
     public override void OnStartClient()
     {
         //SyncList는 SyncVar와 hook함수를 사용하지 않는다.
         hands.OnChange += OnHandsChanged;
         gems.OnChange += OnGemsChanged;
         usedCards.OnChange += OnUsedCardsChanged;
+
+        //UI에 플레이어 Panel 생성
+        gameSceneUI =  UIManager.Instance.GetActiveUI(UIPrefab.GameSceneUI).GetComponent<UI_GameScene>();
+        gameSceneUI.SetPlayerInfo(netId);
+
     }
 
+    public override void OnStopClient()
+    {
+        hands.OnChange -= OnHandsChanged;
+        gems.OnChange -= OnGemsChanged;
+        usedCards.OnChange -= OnUsedCardsChanged;
 
+        gameSceneUI.RemovePlayerInfo(netId);
+    }
 
     //SyncList의 변경은 Server에서만 이루어진다.
-
+    //Initialize는 MyNetWorkRoomManager에서 GamePlayer가 생성될 때 불림
     [Server]
     public void InitializeHands()
     {
@@ -92,15 +115,19 @@ public class MyPlayerGameData : NetworkBehaviour
     private void OnHandsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
         //UI변경
+        //gameSceneUI.뭐시기저시기(netId);
+
     }
 
     private void OnGemsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
         //UI변경
+        gameSceneUI.UpdatePlayerGemsInfo(netId);
     }
 
     private void OnUsedCardsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
         //UI변경
+        gameSceneUI.UpdatePlayerUsedCardInfo(netId);
     }
 }

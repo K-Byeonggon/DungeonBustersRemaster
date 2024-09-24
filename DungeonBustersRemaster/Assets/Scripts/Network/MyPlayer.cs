@@ -1,4 +1,6 @@
 using Mirror;
+using Mirror.Examples.AdditiveScenes;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,18 +17,22 @@ public enum PlayerColor
 
 public class MyPlayer : NetworkBehaviour
 {
-    [SerializeField] List<GameObject> CharacterModels;
-    [SerializeField] List<Sprite> Sprite_CharacterIcon;
-    private Image Img_CharacterIcon;
-    private PlayerColor PlayerColor;
-
-
     [SyncVar(hook = nameof(CharacterIndexChanged))]
-    public int characterIndex;
+    private int characterIndex = -1;
 
     [SyncVar(hook = nameof(NicknameChanged))]
-    public string nickname;
+    private string nickname;
 
+    [SyncVar(hook = nameof(PlayerColorChanged))]
+    private PlayerColor playerColor;
+
+    [Header("Player Models")]
+    [SerializeField] List<GameObject> CharacterModels;
+
+
+    public int CharacterIndex => characterIndex;
+    public string Nickname => nickname;
+    public PlayerColor PlayerColor => playerColor;
 
     private void SetCharacterModel(int characterIndex)
     {
@@ -40,32 +46,50 @@ public class MyPlayer : NetworkBehaviour
         CharacterModels[characterIndex].SetActive(true);
     }
 
-    private void SetCharacterIcon(int characterIndex)
-    {
-        Img_CharacterIcon.sprite = Sprite_CharacterIcon[characterIndex];
-    }
 
     private void SetNickName(string name)
     {
         //Player 머리위의 닉네임 변경.
     }
 
-    #region commands
-
-    //GamePlayer생성 후 불린다.
-    [Command]
-    public void CmdChangeCharacterIndex(int index)
+    [Server]
+    public void InitializeCharacterIndex(NetworkConnectionToClient conn)
     {
-        characterIndex = index;
+        //characterIndex 설정(Room에서 설정한 값)
+        int characterIndex = PlayerDataManager.Instance.GetCharacterIndex(conn.identity.netId);
+        Debug.Log("characterIndex: " + characterIndex);
+        this.characterIndex = characterIndex;
     }
 
-    [Command]
-    public void CmdChangeNickname(string name)
+    [Server]
+    public void InitializeNickname(NetworkConnectionToClient conn)
     {
-        nickname = name;
+        //nickname 설정(Room에서 설정한 값)
+        string nickname = PlayerDataManager.Instance.GetNickname(conn.identity.netId);
+        this.nickname = nickname;
     }
 
-    #endregion
+    [Server]
+    public void InitializePlayerColor(int gamePlayerCount)
+    {
+        //playerColor 설정(정해진 값: 3명이면 RED, YELLOW, BLUE/4~5명이면 PlayerColor 순서대로 할당)
+        Array colors = Enum.GetValues(typeof(PlayerColor));
+        List<PlayerColor> colorList = new List<PlayerColor>((PlayerColor[])colors);
+        if (MyNetworkRoomManager.Instance.roomSlots.Count < 4)
+        {
+            colorList.Remove(PlayerColor.GREEN);
+            colorList.Remove(PlayerColor.PURPLE);
+        }
+
+        if (gamePlayerCount > 0 && gamePlayerCount <= colors.Length)
+        {
+            playerColor = colorList[gamePlayerCount - 1];
+        }
+        else
+        {
+            Debug.LogError($"Invalid gamePlayerCount: {gamePlayerCount}");
+        }
+    }
 
     #region hook
 
@@ -75,13 +99,17 @@ public class MyPlayer : NetworkBehaviour
 
         //플레이어 모델링 바꾸기
         SetCharacterModel(newIndex);
-        SetCharacterIcon(newIndex);
     }
 
     private void NicknameChanged(string oldName, string newName)
     {
         //Player 머리위의 닉네임 변경.
         SetNickName(newName);
+    }
+
+    private void PlayerColorChanged(PlayerColor oldColor, PlayerColor newColor)
+    {
+        //뭐 없긴함.
     }
     #endregion
 }

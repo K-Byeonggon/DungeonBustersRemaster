@@ -11,6 +11,10 @@ public class MyNetworkRoomManager : NetworkRoomManager
 {
     public event Action OnRoomPlayersUpdated;
 
+    //GamePlayScene에 들어간 플레이수 추적(PlayerColor정할 때 쓰임)
+    private int gamePlayerCount = 0;
+    
+    public int GamePlayerCount => gamePlayerCount;
 
     #region Singleton
     public static MyNetworkRoomManager Instance { get; private set; }
@@ -153,6 +157,11 @@ public class MyNetworkRoomManager : NetworkRoomManager
             UIManager.Instance.ShowUI(UIPrefab.LobbyUI);
             UI_Notify.Show("호스트가 연결을 끊어 종료되었습니다.");
         }
+
+        if (Utils.IsSceneActive(GameplayScene))
+        {
+            //UIManager.Instance.HideUIWithTimer(UIPrefab.GameSceneUI);
+        }
     }
 
 
@@ -161,24 +170,47 @@ public class MyNetworkRoomManager : NetworkRoomManager
     {
         MethodName.DebugLog();
 
+        gamePlayerCount++;
+
         Transform startPos = GetStartPosition();
         GameObject gamePlayer = startPos != null
             ? Instantiate(playerPrefab, startPos.position, startPos.rotation)
             : Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
 
         MyPlayer myGamePlayer = gamePlayer.GetComponent<MyPlayer>();
+        MyPlayerGameData myGameData = gamePlayer.GetComponent<MyPlayerGameData>();
 
-        //서버에서 바로 playerInfo 설정
-        int characterIndex = PlayerDataManager.Instance.GetCharacterIndex(conn.identity.netId);
-        myGamePlayer.characterIndex = characterIndex;
-        string nickname = PlayerDataManager.Instance.GetNickname(conn.identity.netId);
-        myGamePlayer.nickname = nickname;
+        //서버에서 바로 playerInfo 설정(클라이언트는 다른 설정 없이 이 설정을 동기화받음)
+        InitializeGamePlayer(conn, myGamePlayer);
+        InitializePlayerGameData(conn, myGameData);
 
         return gamePlayer;
     }
 
+    [Server]
+    private void InitializeGamePlayer(NetworkConnectionToClient conn, MyPlayer myGamePlayer)
+    {
+        myGamePlayer.InitializeCharacterIndex(conn);
+        myGamePlayer.InitializeNickname(conn);
+        myGamePlayer.InitializePlayerColor(gamePlayerCount);
+    }
+
+    [Server]
+    private void InitializePlayerGameData(NetworkConnectionToClient conn, MyPlayerGameData myGameData)
+    {
+        myGameData.InitializeHands();
+        myGameData.InitializeGems();
+        myGameData.InitializeUsedCards();
+    }
+
+
+
     public override void OnClientSceneChanged()
     {
+        if (Utils.IsSceneActive(GameplayScene))
+        {
+            UIManager.Instance.ShowUI(UIPrefab.GameSceneUI);
+        }
         base.OnClientSceneChanged();
         Debug.Log("이건 불리는지 확인");
     }

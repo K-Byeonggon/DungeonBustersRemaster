@@ -9,6 +9,11 @@ public class MonsterDataManager : Singleton<MonsterDataManager>
     public string jsonFilePath = "Assets/Resources/Monsters.json";
     public Dictionary<int, Monster> LoadedMonsters = new Dictionary<int, Monster>();
 
+    private Dictionary<string, GameObject> monsterPrefabs = new Dictionary<string, GameObject>();
+    private Dictionary<int, GameObject> monsterPool = new Dictionary<int, GameObject>();
+
+    #region JSON Data
+
     public async UniTask LoadMonsterData()
     {
         if (File.Exists(jsonFilePath))
@@ -37,6 +42,7 @@ public class MonsterDataManager : Singleton<MonsterDataManager>
         await UniTask.Yield();
     }
 
+    //디버그용. LoadMonsterData 이후에 부르던가 하면 됨.
     public void VerifyLoadedMonsters()
     {
         if (LoadedMonsters == null || LoadedMonsters.Count == 0)
@@ -61,4 +67,37 @@ public class MonsterDataManager : Singleton<MonsterDataManager>
             Debug.Log($"Reward1: {reward1}, Reward2: {reward2}, Reward3: {reward3}");
         }
     }
+    #endregion
+
+    #region Monster Prefab
+
+    public async UniTask LoadAllMonsterPrefabs()
+    {
+        var prefabs = Resources.LoadAll<GameObject>("Prefabs/Monster");
+        foreach(var prefab in prefabs)
+        {
+            if (prefab != null)
+            {
+                //prefab.name은 DataId와 동일해야함.
+                monsterPrefabs[prefab.name] = prefab;
+            }
+        }
+        await UniTask.Yield();
+    }
+
+    
+    public GameObject GetMonsterPrefab(string dataId)
+    {
+        if (monsterPrefabs.ContainsKey(dataId))
+        {
+            return monsterPrefabs[dataId];
+        }
+        else
+        {
+            Debug.LogError($"Invalid DataId(prefad.Name): {dataId}");
+            return null;
+        }
+    }
+    
+    #endregion
 }

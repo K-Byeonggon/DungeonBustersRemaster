@@ -56,7 +56,6 @@ public class UIManager : Singleton<UIManager>
     private Dictionary<string, GameObject> activeUIs = new Dictionary<string, GameObject>();
     private Dictionary<string, CancellationTokenSource> removeTimers = new Dictionary<string, CancellationTokenSource>();
     private Dictionary<string, Stack<GameObject>> uiPool = new Dictionary<string, Stack<GameObject>>();
-    private Dictionary<string, Stack<UIPrefab>> sceneUIs = new Dictionary<string, Stack<UIPrefab>>(); 
 
     private const float UI_REMOVE_DELAY = 7f;
 

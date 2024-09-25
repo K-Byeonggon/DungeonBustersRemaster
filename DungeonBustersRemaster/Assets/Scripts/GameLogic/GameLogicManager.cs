@@ -117,17 +117,23 @@ public class GameLogicManager : NetworkBehaviour
     {
         Debug.Log("Game Start Phase");
 
-        
     }
 
     private void ExecuteDungeonStart()
     {
-
+        //이번 던전에서 등장할 몬스터들(4마리) 결정된다.
+        //아마 Dictionary<int, Queue<int>> 같은거에 저장되지 않을까? (int = dungeonNum, int = monsterDataId)
     }
 
     private void ExecuteStageStart()
     {
-        //몬스터 정보등이 갱신된다.
+        //이번 스테이지에 등장할 몬스터가 결정된다. 아마 Dictionary의 Queue에서 하나씩 뽑아오겠지
+        //그러면 몬스터는 Monster의 DataId로 뽑아오는게 맞다.
+        //모든 몬스터 정보는 MonsterDataManager에 DataId를 Key로, Monster(class)를 Value로 저장하고 있으니까,
+        //DataId로 Monster정보를 받아서 Monster(gameScene)의 정보를 갱신해주고, 갱신한걸로 UI 바꾸면 된다.
+        //그러면 몬스터 정보를 엄...모든 클라에서 봐야하니까, SyncVar로 하던가 ClienRpc로 클라에 갱신요청하던가 해야함.
+        //근데 이런 게임 진행은 Server에서만 관리하니까.. 머리가 아프다
+
         //다음 몬스터를 향해 달려가는 애니메이션이 재생된다.
     }
 

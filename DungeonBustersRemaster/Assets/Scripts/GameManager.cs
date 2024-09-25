@@ -12,9 +12,11 @@ public class GameManager : SingletonMono<GameManager>
             await UniTask.WhenAll
             (
                 UIManager.Instance.LoadAllUIPrefabs(),
-                SpriteManager.Instance.LoadAllSprites()
+                SpriteManager.Instance.LoadAllSprites(),
+                MonsterDataManager.Instance.LoadMonsterData()
             );
 
+            MonsterDataManager.Instance.VerifyLoadedMonsters();
             UIManager.Instance.ShowUI(UIPrefab.TitleUI);
         }
     }

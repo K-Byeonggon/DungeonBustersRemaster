@@ -2,29 +2,31 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Panel_PlayerInfo : MonoBehaviour
+public class UI_PlayerInfo : MonoBehaviour
 {
+    [SerializeField] GameObject Img_Overlay;
+    [SerializeField] RectTransform Panel_PlayerInfo;
     [SerializeField] Button Btn_Open;
     [SerializeField] TextMeshProUGUI Text_OpenBtn;
     [SerializeField] Transform Layout_PlayerInfo;
+
+    [Header("GamePlayerPrefab")]
     [SerializeField] GameObject Prefab_PanelGamePlayer;
 
-    private RectTransform uiPanel;
     private bool IsOpened;
 
-    private const float OpenDuration = 1.0f;
+    private const float OpenDuration = 0.8f;
  
-
     private Dictionary<uint, Panel_GamePlayer> PlayerPanels = new Dictionary<uint, Panel_GamePlayer>();
 
     private void OnEnable()
     {
-        uiPanel = GetComponent<RectTransform>();
         IsOpened = false;
-
+        Img_Overlay.SetActive(IsOpened);
         Btn_Open.onClick.AddListener(OnClick_Open);
     }
 
@@ -36,25 +38,25 @@ public class Panel_PlayerInfo : MonoBehaviour
     private void OnClick_Open()
     {
         IsOpened = !IsOpened;
-
+        Img_Overlay.SetActive(IsOpened);
         MovePanel();
-
     }
 
     private void MovePanel()
     {
         if(IsOpened)
         {
-            uiPanel.DOAnchorPos(new Vector2(640f, 0f), OpenDuration).SetEase(Ease.OutQuad);
-            Text_OpenBtn.text = "<";
+            Panel_PlayerInfo.DOAnchorPos(new Vector2(0f, 0f), OpenDuration).SetEase(Ease.OutQuad);
+            Text_OpenBtn.text = ">";
         }
         else
         {
-            uiPanel.DOAnchorPos(new Vector2(0f, 0f), OpenDuration).SetEase(Ease.OutQuad);
-            Text_OpenBtn.text = ">";
+            Panel_PlayerInfo.DOAnchorPos(new Vector2(640f, 0f), OpenDuration).SetEase(Ease.OutQuad);
+            Text_OpenBtn.text = "<";
         }
     }
 
+    //OnStartClient에서 불린다.
     public void SetPlayerInfo(uint netId)
     {
         GameObject gObj = Instantiate(Prefab_PanelGamePlayer, Layout_PlayerInfo);
@@ -120,6 +122,7 @@ public class Panel_PlayerInfo : MonoBehaviour
         }
     }
 
+    //OnStopClient에서 불린다
     public void RemovePlayerInfo(uint netId)
     {
         foreach(Transform child in Layout_PlayerInfo)

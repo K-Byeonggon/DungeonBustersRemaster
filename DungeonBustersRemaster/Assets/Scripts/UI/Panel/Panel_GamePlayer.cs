@@ -18,12 +18,6 @@ public class Panel_GamePlayer : MonoBehaviour
     [SerializeField] List<TextMeshProUGUI> PlayerGems;
     [SerializeField] Transform Layout_PlayerUsedCards;
 
-    [Header("Card Prefab")]
-    [SerializeField] GameObject Prefab_ContentCard;
-
-    [Header("Character Sprites")]
-    [SerializeField] List<Sprite> CharacterSprites;
-
     public uint PanelNetId
     {
         get { return panelNetId; }
@@ -32,16 +26,6 @@ public class Panel_GamePlayer : MonoBehaviour
             panelNetId = value;
             RegistPlayerData(panelNetId);
         }
-    }
-
-    private void OnEnable()
-    {
-        
-    }
-
-    private void OnDisable()
-    {
-        
     }
 
     public void UpdatePlayerName()
@@ -56,7 +40,7 @@ public class Panel_GamePlayer : MonoBehaviour
 
     public void UpdatePlayerIcon()
     {
-        Img_PlayerIcon.sprite = CharacterSprites[playerData.CharacterIndex];
+        Img_PlayerIcon.sprite = SpriteManager.Instance.GetCharacterIconSprite(playerData.CharacterIndex);
     }
 
     public void UpdateIsLocal()
@@ -73,10 +57,12 @@ public class Panel_GamePlayer : MonoBehaviour
             Destroy(child);
         }
 
+        GameObject prefabCard = UIManager.Instance.JustGetUIPrefab(UIPrefab.Content_Card);
+
         //PlayerColor에 맞는 카드 오브젝트를 UsedCard의 숫자에 맞게 생성
         for (int i = 0; i < playerGameData.UsedCards.Count; i++)
         {
-            GameObject gObj = Instantiate(Prefab_ContentCard, Layout_PlayerUsedCards);
+            GameObject gObj = Instantiate(prefabCard, Layout_PlayerUsedCards);
             Content_Card usedCard = gObj.GetComponent<Content_Card>();
             usedCard.SetCardNum(playerGameData.UsedCards[i]);
             usedCard.SetCardImg(playerData.PlayerColor);

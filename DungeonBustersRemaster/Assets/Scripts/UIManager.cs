@@ -35,6 +35,7 @@ public enum UIPrefab
 
     //GamePlay Scene
     GameSceneUI,
+    PlayerInfoUI,
     SelectCardUI,
     Content_Card
 

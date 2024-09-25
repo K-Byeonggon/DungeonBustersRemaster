@@ -16,9 +16,13 @@ public class MyPlayerGameData : NetworkBehaviour
     //usedCards : 플레이어가 사용한 카드들
     private readonly SyncList<int> usedCards = new SyncList<int>();
 
-    private UI_GameScene gameSceneUI;
+    private UI_PlayerInfo playerInfoUI;
 
+    [SyncVar(hook = nameof(OnSelectedNumChanged))]
     private int selectedCardNum;
+
+    [SyncVar(hook = nameof(OnIsAttackSuccessChanged))]
+    private bool isAttackSuccess;
 
     public List<int> Hands => hands.ToList();
     public List<int> Gems => gems.ToList();
@@ -26,8 +30,14 @@ public class MyPlayerGameData : NetworkBehaviour
 
     public int SelectedCardNum
     {
-        get { return selectedCardNum; }
+        get => selectedCardNum;
         set { selectedCardNum = value; }
+    }
+
+    public bool IsAttackSuccess
+    {
+        get => isAttackSuccess;
+        set { isAttackSuccess = value; }
     }
 
     public override void OnStartClient()
@@ -38,9 +48,8 @@ public class MyPlayerGameData : NetworkBehaviour
         usedCards.OnChange += OnUsedCardsChanged;
 
         //UI에 플레이어 Panel 생성
-        gameSceneUI =  UIManager.Instance.GetActiveUI(UIPrefab.GameSceneUI).GetComponent<UI_GameScene>();
-        gameSceneUI.SetPlayerInfo(netId);
-
+        playerInfoUI = UIManager.Instance.GetActiveUI(UIPrefab.PlayerInfoUI).GetComponent<UI_PlayerInfo>();
+        playerInfoUI.SetPlayerInfo(netId);
     }
 
     public override void OnStopClient()
@@ -49,7 +58,7 @@ public class MyPlayerGameData : NetworkBehaviour
         gems.OnChange -= OnGemsChanged;
         usedCards.OnChange -= OnUsedCardsChanged;
 
-        gameSceneUI.RemovePlayerInfo(netId);
+        playerInfoUI.RemovePlayerInfo(netId);
     }
 
     //SyncList의 변경은 Server에서만 이루어진다.
@@ -117,6 +126,7 @@ public class MyPlayerGameData : NetworkBehaviour
         gems.AddRange(newGems);
     }
 
+    #region hook
     private void OnHandsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
         //UI변경
@@ -127,12 +137,24 @@ public class MyPlayerGameData : NetworkBehaviour
     private void OnGemsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
         //UI변경
-        gameSceneUI.UpdatePlayerGemsInfo(netId);
+        playerInfoUI.UpdatePlayerGemsInfo(netId);
     }
 
     private void OnUsedCardsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
         //UI변경
-        gameSceneUI.UpdatePlayerUsedCardInfo(netId);
+        playerInfoUI.UpdatePlayerUsedCardsInfo(netId);
     }
+
+    private void OnSelectedNumChanged(int oldNum, int newNum)
+    {
+        //Panel_SelectCard에서는 Local플레이어를 참조해서 이걸로 변경할 UI없음.
+        //하지만 각 플레이어의 SelectedCardNum은 모든 클라의 OpenCardUI에서 값을 알아야하므로 SyncVar이어야함.
+    }
+
+    private void OnIsAttackSuccessChanged(bool oldBool, bool newBool)
+    {
+
+    }
+    #endregion
 }

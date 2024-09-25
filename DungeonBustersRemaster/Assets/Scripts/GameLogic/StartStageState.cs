@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StartStageState : MonoBehaviour
+public class StartStageState : IGameState
 {
     private GameLogicManager gameLogicManager;
     public StartStageState(GameLogicManager gameLogicManager)

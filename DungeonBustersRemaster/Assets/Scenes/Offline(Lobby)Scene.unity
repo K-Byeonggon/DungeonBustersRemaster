@@ -1221,6 +1221,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2316596389568088585, guid: 31d8b1d71044b7d45b0fac5c418b0bd6, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 3229493951886316629, guid: 31d8b1d71044b7d45b0fac5c418b0bd6, type: 3}
       propertyPath: m_Name
       value: '@UI_Canvas'

@@ -37,7 +37,8 @@ public enum UIPrefab
     GameSceneUI,
     PlayerInfoUI,
     SelectCardUI,
-    Content_Card
+    Content_Card,
+    WinLoseUI
 
 }
 

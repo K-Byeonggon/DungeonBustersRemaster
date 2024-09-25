@@ -34,7 +34,7 @@ public class UI_OpenCard : MonoBehaviour
 
                 openPlayer.SetPlayerName(playerData.Nickname);
                 openPlayer.SetCharacterIcon(playerData.CharacterIndex);
-                openPlayer.SetSelectedCard(playerGameData.SelectedCardNum, playerData.PlayerColor);
+                openPlayer.SetSelectedCard(playerGameData.SubmittedCardNum, playerData.PlayerColor);
                 openPlayer.SetAttackSuccess(playerGameData.IsAttackSuccess);
             }
         }

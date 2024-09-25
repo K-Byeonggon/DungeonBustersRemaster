@@ -40,7 +40,7 @@ public class Panel_SelectCard : MonoBehaviour
         MyPlayerGameData playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
 
         Img_SelectedCard.sprite = SpriteManager.Instance.GetCardSprite(playerData.PlayerColor);
-        Text_CardNum.text = playerGameData.SelectedCardNum.ToString();
+        Text_CardNum.text = playerGameData.SubmittedCardNum.ToString();
     }
 
 }

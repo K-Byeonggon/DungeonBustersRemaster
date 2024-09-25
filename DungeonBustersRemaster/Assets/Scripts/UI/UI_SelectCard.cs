@@ -52,7 +52,7 @@ public class UI_SelectCard : MonoBehaviour
 
     private void Action_OnClickCard(int cardNum)
     {
-        playerGameData.SelectedCardNum = cardNum;
+        playerGameData.SubmittedCardNum = cardNum;
 
         UIManager.Instance.HideUIWithPooling(UIPrefab.SelectCardUI);
 

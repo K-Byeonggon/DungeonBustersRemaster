@@ -18,8 +18,8 @@ public class MyPlayerGameData : NetworkBehaviour
 
     private UI_PlayerInfo playerInfoUI;
 
-    [SyncVar(hook = nameof(OnSelectedNumChanged))]
-    private int selectedCardNum;
+    [SyncVar(hook = nameof(OnSubmittedCardNumChanged))]
+    private int submittedCardNum;
 
     [SyncVar(hook = nameof(OnIsAttackSuccessChanged))]
     private bool isAttackSuccess;
@@ -28,10 +28,10 @@ public class MyPlayerGameData : NetworkBehaviour
     public List<int> Gems => gems.ToList();
     public List<int> UsedCards => usedCards.ToList();
 
-    public int SelectedCardNum
+    public int SubmittedCardNum
     {
-        get => selectedCardNum;
-        set { selectedCardNum = value; }
+        get => submittedCardNum;
+        set { submittedCardNum = value; }
     }
 
     public bool IsAttackSuccess
@@ -146,10 +146,10 @@ public class MyPlayerGameData : NetworkBehaviour
         playerInfoUI.UpdatePlayerUsedCardsInfo(netId);
     }
 
-    private void OnSelectedNumChanged(int oldNum, int newNum)
+    private void OnSubmittedCardNumChanged(int oldNum, int newNum)
     {
         //Panel_SelectCard에서는 Local플레이어를 참조해서 이걸로 변경할 UI없음.
-        //하지만 각 플레이어의 SelectedCardNum은 모든 클라의 OpenCardUI에서 값을 알아야하므로 SyncVar이어야함.
+        //하지만 각 플레이어의 SubmittedCardNum은 모든 클라의 OpenCardUI에서 값을 알아야하므로 SyncVar이어야함.
     }
 
     private void OnIsAttackSuccessChanged(bool oldBool, bool newBool)

@@ -60,14 +60,14 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
 
     #region commands
 
-    [Command]
+    [Command(requiresAuthority = false)]
     public void CmdChangeCharacterIndex(int index)
     {
         characterIndex = index;
     }
 
 
-    [Command]
+    [Command(requiresAuthority = false)]
     public void CmdChangeNickName(string name)
     {
         nickname = name;

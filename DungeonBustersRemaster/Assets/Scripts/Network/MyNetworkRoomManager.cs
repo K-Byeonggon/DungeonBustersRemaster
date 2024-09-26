@@ -10,6 +10,7 @@ using UnityEngine;
 public class MyNetworkRoomManager : NetworkRoomManager
 {
     public event Action OnRoomPlayersUpdated;
+    public event Action OnAllGamePlayerLoaded;
 
     //GamePlayScene에 들어간 플레이수 추적(PlayerColor정할 때 쓰임)
     private int gamePlayerCount = 0;
@@ -185,6 +186,18 @@ public class MyNetworkRoomManager : NetworkRoomManager
         InitializePlayerGameData(conn, myGameData);
 
         return gamePlayer;
+    }
+
+    //Server. GamePlayScene에 플레이어가 생성완료되면 불린다. 여기서 플레이어를 체크해서 게임을 시작하자.
+    public override bool OnRoomServerSceneLoadedForPlayer(NetworkConnectionToClient conn, GameObject roomPlayer, GameObject gamePlayer)
+    {
+        Debug.Log(roomSlots.Count);
+        if(gamePlayerCount == roomSlots.Count)
+        {
+            OnAllGamePlayerLoaded?.Invoke();
+        }
+
+        return base.OnRoomServerSceneLoadedForPlayer(conn, roomPlayer, gamePlayer);
     }
 
     [Server]

@@ -32,7 +32,7 @@ public class UI_StageInfo : MonoBehaviour
 
     private void SetStageInfo(int currentStage)
     {
-        Text_Stage.text = $"Stage {currentStage}";
+        Text_Stage.text = $"Stage {currentStage}/4";
     }
 
     public static void UpdateDungeonInfo(int currentDungeon)

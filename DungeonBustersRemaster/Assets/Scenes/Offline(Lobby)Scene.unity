@@ -931,7 +931,7 @@ Transform:
   m_GameObject: {fileID: 1443223583}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 362.96606, y: 870.40125, z: -5.92356}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1221,6 +1221,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1241503792034344243, guid: 31d8b1d71044b7d45b0fac5c418b0bd6, type: 3}
+      propertyPath: m_UiScaleMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1241503792034344243, guid: 31d8b1d71044b7d45b0fac5c418b0bd6, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1241503792034344243, guid: 31d8b1d71044b7d45b0fac5c418b0bd6, type: 3}
+      propertyPath: m_MatchWidthOrHeight
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1241503792034344243, guid: 31d8b1d71044b7d45b0fac5c418b0bd6, type: 3}
+      propertyPath: m_ReferenceResolution.x
+      value: 1080
+      objectReference: {fileID: 0}
+    - target: {fileID: 1241503792034344243, guid: 31d8b1d71044b7d45b0fac5c418b0bd6, type: 3}
+      propertyPath: m_ReferenceResolution.y
+      value: 1920
+      objectReference: {fileID: 0}
+    - target: {fileID: 2316596389568088585, guid: 31d8b1d71044b7d45b0fac5c418b0bd6, type: 3}
+      propertyPath: m_VertexColorAlwaysGammaSpace
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2316596389568088585, guid: 31d8b1d71044b7d45b0fac5c418b0bd6, type: 3}
       propertyPath: m_AdditionalShaderChannelsFlag
       value: 25
@@ -1320,9 +1344,9 @@ SceneRoots:
   m_Roots:
   - {fileID: 555430308}
   - {fileID: 89738622}
-  - {fileID: 1443223586}
   - {fileID: 5529002609095734966}
   - {fileID: 212547244}
   - {fileID: 1359081568}
   - {fileID: 1190107525}
   - {fileID: 1982704247}
+  - {fileID: 1443223586}

@@ -13,6 +13,7 @@ public class SpriteManager : Singleton<SpriteManager>
     {
         await LoadAllCards();
         await LoadAllIcons();
+        await LoadAllGems();
     }
 
     private async UniTask LoadAllCards()

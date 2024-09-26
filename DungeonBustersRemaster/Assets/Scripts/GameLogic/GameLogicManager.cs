@@ -20,27 +20,10 @@ public enum GamePhase
 
 public class GameLogicManager : NetworkBehaviour
 {
-    #region Singleton
-    private static GameLogicManager _instance;
-    public static GameLogicManager Instance
-    {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = FindObjectOfType<GameLogicManager>();
-                if (_instance == null)
-                {
-                    GameObject go = new GameObject("GameManager");
-                    _instance = go.AddComponent<GameLogicManager>();
-                }
-            }
-            return _instance;
-        }
-    }
-    #endregion
+    //NetworkBehaviour에 Singleton패턴을 적용하면 NetworkManager에 의한 관리와 충돌할 수 있다.
+    public static GameLogicManager Instance;
 
-    private Transform monsterPosition;
+    public event Action OnMonsterSpawn;
 
     [SyncVar(hook = nameof(OnPhaseChanged))]
     private GamePhase currentPhase = GamePhase.GameStart;
@@ -50,7 +33,7 @@ public class GameLogicManager : NetworkBehaviour
     [SyncVar(hook = nameof(OnCurrentDungeonChanged))]
     private int currentDungeon;
 
-    private Queue<int> currentDungeonMonsterIds;
+    private Queue<int> currentDungeonMonsterIds = new Queue<int>();
 
     [SyncVar(hook = nameof(OnCurrentStageChanged))]
     private int currentStage;
@@ -61,17 +44,12 @@ public class GameLogicManager : NetworkBehaviour
 
     private void Awake()
     {
-        if (_instance != null && _instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            _instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-
         InitializePhaseActions();
+    }
+
+    private void Start()
+    {
+        MyNetworkRoomManager.Instance.OnAllGamePlayerLoaded += StartGame;
     }
 
     private void InitializePhaseActions()
@@ -102,7 +80,7 @@ public class GameLogicManager : NetworkBehaviour
     private void SetPhase(GamePhase newPhase)
     {
         currentPhase = newPhase;
-        
+        ExecuteCurrentPhase();
     }
 
     [Server]
@@ -150,14 +128,17 @@ public class GameLogicManager : NetworkBehaviour
     private void ExecuteGameStart()
     {
         Debug.Log("Game Start Phase");
+
+
         InitializeGame();
+
+        SetPhase(GamePhase.DungeonStart);
     }
 
     private void InitializeGame()
     {
         currentDungeon = 0;
         currentStage = 0;
-        currentMonsterDataId = -1;
         currentDungeonMonsterIds.Clear();
     }
 
@@ -169,6 +150,7 @@ public class GameLogicManager : NetworkBehaviour
         List<int> monsterIdList = MonsterDataManager.Instance.GetRandomMonsterDataIdsByDungeon(currentDungeon);
         currentDungeonMonsterIds = new Queue<int>(monsterIdList);
 
+        SetPhase(GamePhase.StageStart);
     }
 
     #region StageStart
@@ -200,6 +182,12 @@ public class GameLogicManager : NetworkBehaviour
     private void RpcMonsterSpawnOnStageStart()
     {
         //어떻게 MonsterSpawner를 통해 스폰?
+        //OnMonsterSpawn?.Invoke();
+        MonsterSpawner spawner = FindObjectOfType<MonsterSpawner>();
+        if (spawner != null)
+        {
+            spawner.SpawnMonster();
+        }
     }
 
     [ClientRpc]

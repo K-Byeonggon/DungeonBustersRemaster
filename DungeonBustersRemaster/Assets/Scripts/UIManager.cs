@@ -43,6 +43,7 @@ public enum UIPrefab
 
     SelectCardUI,
     Content_Card,
+    Content_Gem,
     WinLoseUI
 
 }

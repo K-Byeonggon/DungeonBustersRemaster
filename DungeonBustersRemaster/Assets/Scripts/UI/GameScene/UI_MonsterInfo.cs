@@ -9,21 +9,12 @@ public class UI_MonsterInfo : MonoBehaviour
     [SerializeField] TextMeshProUGUI Text_MonsterHP;
     [SerializeField] Transform Layout_Reward;
 
-    private void OnEnable()
-    {
-
-    }
-
-    private void OnDisable()
-    {
-
-    }
 
     private void SetMonsterInfo(int monsterDataId)
     {
         UpdateMonsterName(monsterDataId);
         UpdateMonsterHP(monsterDataId);
-        UpdtateReward(monsterDataId);
+        UpdateReward(monsterDataId);
     }
 
     private void UpdateMonsterName(int monsterDataId)
@@ -37,11 +28,25 @@ public class UI_MonsterInfo : MonoBehaviour
         Text_MonsterHP.text = $"HP: {hp}";
     }
 
-    private void UpdtateReward(int monsterDataId)
+    private void UpdateReward(int monsterDataId)
     {
+        List<List<int>> rewardsData = MonsterDataManager.Instance.LoadedMonsters[monsterDataId].Reward;
 
+        for (int i = 0; i < rewardsData.Count; i++)
+        {
+            GameObject reward = Layout_Reward.GetChild(i).gameObject;
+            if (rewardsData[i].Count > 0)
+            {
+                Panel_Reward rewardPanel = reward.GetComponent<Panel_Reward>();
+                rewardPanel.UpdateRewardInfo(rewardsData[i]);
+                reward.SetActive(true);
+            }
+            else
+            {
+                reward.SetActive(false);
+            }
+        }
     }
-
 
     //GameLogicManager의 currentMonsterDataId가 변경될 때 hook으로 불림
     public static void UpdateMonsterInfo(int currentMonsterDataId)

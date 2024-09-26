@@ -110,7 +110,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Img_Jewels_0
+      name: RED
       rect:
         serializedVersion: 2
         x: 9
@@ -118,7 +118,7 @@ TextureImporter:
         width: 278
         height: 280
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -131,7 +131,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Img_Jewels_1
+      name: YELLOW
       rect:
         serializedVersion: 2
         x: 353
@@ -139,7 +139,7 @@ TextureImporter:
         width: 281
         height: 282
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -152,7 +152,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Img_Jewels_2
+      name: BLUE
       rect:
         serializedVersion: 2
         x: 700
@@ -160,7 +160,7 @@ TextureImporter:
         width: 280
         height: 281
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -183,9 +183,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Img_Jewels_0: 1324350405
-      Img_Jewels_1: -1800992955
-      Img_Jewels_2: 680493870
+      BLUE: 680493870
+      RED: 1324350405
+      YELLOW: -1800992955
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

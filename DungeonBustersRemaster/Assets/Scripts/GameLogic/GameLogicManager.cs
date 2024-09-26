@@ -140,6 +140,7 @@ public class GameLogicManager : NetworkBehaviour
     private void OnCurrentMonsterDataIdChanged(int oldMonsterId, int newMonsterId)
     {
         Debug.Log($"MonsterIdChanged: {oldMonsterId} -> {newMonsterId}");
+        UI_MonsterInfo.UpdateMonsterInfo(newMonsterId);
     }
 
     #endregion

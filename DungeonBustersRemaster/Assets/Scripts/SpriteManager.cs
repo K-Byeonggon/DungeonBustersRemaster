@@ -7,6 +7,7 @@ public class SpriteManager : Singleton<SpriteManager>
 {
     private Dictionary<string, Sprite> cardSprites = new Dictionary<string, Sprite>();
     private Dictionary<string, Sprite> characterIconSprites = new Dictionary<string, Sprite>();
+    private Dictionary<string, Sprite> gemSprites = new Dictionary<string, Sprite>();
 
     public async UniTask LoadAllSprites()
     {
@@ -37,6 +38,20 @@ public class SpriteManager : Singleton<SpriteManager>
                 characterIconSprites[sprite.name] = sprite;
             }
         }
+        await UniTask.Yield();
+    }
+
+    private async UniTask LoadAllGems()
+    {
+        var gems = Resources.LoadAll<Sprite>("Sprites/Gem");
+        foreach (var sprite in gems)
+        {
+            if(sprite != null)
+            {
+                gemSprites[sprite.name] = sprite;
+            }
+        }
+
         await UniTask.Yield();
     }
 
@@ -78,6 +93,21 @@ public class SpriteManager : Singleton<SpriteManager>
         else
         {
             Debug.LogError($"Invalid characterIndex: {characterIndex}");
+            return null;
+        }
+    }
+
+    public Sprite GetGemSprite(GemColor gemColor)
+    {
+
+        string key = gemColor.ToString();
+        if (gemSprites.ContainsKey(key))
+        {
+            return gemSprites[key];
+        }
+        else
+        {
+            Debug.LogError($"Invalid GemColor: {gemColor}");
             return null;
         }
     }

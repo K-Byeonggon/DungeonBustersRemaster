@@ -13,9 +13,11 @@ public class GameManager : SingletonMono<GameManager>
             (
                 UIManager.Instance.LoadAllUIPrefabs(),
                 SpriteManager.Instance.LoadAllSprites(),
-                MonsterDataManager.Instance.LoadMonsterData()
+                MonsterDataManager.Instance.LoadMonsterData(),
+                MonsterDataManager.Instance.LoadAllMonsterPrefabs()
             );
 
+            MonsterDataManager.Instance.VerifyLoadedMonsters();
             UIManager.Instance.ShowUI(UIPrefab.TitleUI);
         }
     }

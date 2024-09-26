@@ -209,7 +209,12 @@ public class MyNetworkRoomManager : NetworkRoomManager
     {
         if (Utils.IsSceneActive(GameplayScene))
         {
-            UIManager.Instance.ShowUI(UIPrefab.GameSceneUI);
+            //UIManager.Instance.ShowUI(UIPrefab.GameSceneUI);
+            UIManager.Instance.ShowUI(UIPrefab.StageInfoUI);
+            UIManager.Instance.ShowUI(UIPrefab.MonsterInfoUI);
+            UIManager.Instance.ShowUI(UIPrefab.BonusGemsUI);
+            UIManager.Instance.ShowUI(UIPrefab.TimerUI);
+            UIManager.Instance.ShowUI(UIPrefab.CardPanelUI);
             UIManager.Instance.ShowUI(UIPrefab.PlayerInfoUI);
         }
         base.OnClientSceneChanged();

@@ -34,8 +34,13 @@ public enum UIPrefab
     ChangeNameUI,
 
     //GamePlay Scene
-    GameSceneUI,
+    StageInfoUI,
+    MonsterInfoUI,
+    BonusGemsUI,
+    TimerUI,
+    CardPanelUI,
     PlayerInfoUI,
+
     SelectCardUI,
     Content_Card,
     WinLoseUI

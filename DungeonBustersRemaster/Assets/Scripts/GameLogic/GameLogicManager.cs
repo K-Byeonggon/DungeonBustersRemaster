@@ -1,4 +1,5 @@
 using Mirror;
+using Org.BouncyCastle.Security;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -39,10 +40,24 @@ public class GameLogicManager : NetworkBehaviour
     }
     #endregion
 
+    private Transform monsterPosition;
+
     [SyncVar(hook = nameof(OnPhaseChanged))]
     private GamePhase currentPhase = GamePhase.GameStart;
 
     private Dictionary<GamePhase, Action> phaseActions;
+
+    [SyncVar(hook = nameof(OnCurrentDungeonChanged))]
+    private int currentDungeon;
+
+    private Queue<int> currentDungeonMonsterIds;
+
+    [SyncVar(hook = nameof(OnCurrentStageChanged))]
+    private int currentStage;
+    [SyncVar(hook = nameof(OnCurrentMonsterDataIdChanged))]
+    private int currentMonsterDataId;
+
+    public int CurrentMonsterDataId => currentMonsterDataId;
 
     private void Awake()
     {
@@ -109,6 +124,24 @@ public class GameLogicManager : NetworkBehaviour
     {
         Debug.Log($"PhaseChanged: {oldPhase} -> {newPhase}");
     }
+
+    private void OnCurrentDungeonChanged(int oldDungeon, int newDungeon)
+    {
+        Debug.Log($"DungeonChanged: {oldDungeon} -> {newDungeon}");
+        UI_StageInfo.UpdateDungeonInfo(newDungeon);
+    }
+
+    private void OnCurrentStageChanged(int oldStage, int newStage)
+    {
+        Debug.Log($"StageChanged: {oldStage} -> {newStage}");
+        UI_StageInfo.UpdateStageInfo(newStage);
+    }
+
+    private void OnCurrentMonsterDataIdChanged(int oldMonsterId, int newMonsterId)
+    {
+        Debug.Log($"MonsterIdChanged: {oldMonsterId} -> {newMonsterId}");
+    }
+
     #endregion
 
 
@@ -116,14 +149,28 @@ public class GameLogicManager : NetworkBehaviour
     private void ExecuteGameStart()
     {
         Debug.Log("Game Start Phase");
+        InitializeGame();
+    }
 
+    private void InitializeGame()
+    {
+        currentDungeon = 0;
+        currentStage = 0;
+        currentMonsterDataId = -1;
+        currentDungeonMonsterIds.Clear();
     }
 
     private void ExecuteDungeonStart()
     {
         //이번 던전에서 등장할 몬스터들(4마리) 결정된다.
         //아마 Dictionary<int, Queue<int>> 같은거에 저장되지 않을까? (int = dungeonNum, int = monsterDataId)
+        currentDungeon++;
+        List<int> monsterIdList = MonsterDataManager.Instance.GetRandomMonsterDataIdsByDungeon(currentDungeon);
+        currentDungeonMonsterIds = new Queue<int>(monsterIdList);
+
     }
+
+    #region StageStart
 
     private void ExecuteStageStart()
     {
@@ -135,7 +182,36 @@ public class GameLogicManager : NetworkBehaviour
         //근데 이런 게임 진행은 Server에서만 관리하니까.. 머리가 아프다
 
         //다음 몬스터를 향해 달려가는 애니메이션이 재생된다.
+
+        //이거는 SyncVar라서 클라에도 알아서 변경됨
+        currentStage++;
+        currentMonsterDataId = currentDungeonMonsterIds.Dequeue();
+
+        //여기서 몬스터 모델 띄워줘야하는데
+        RpcMonsterSpawnOnStageStart();
+
+        //몬스터 생성하면서 UI도 다시띄워준다.
+        //이거가 Server에서만 실행되겠네. ClientRpc로 요청보내자.
+        RpcUIChangeOnStageStart();
     }
+
+    [ClientRpc]
+    private void RpcMonsterSpawnOnStageStart()
+    {
+        //어떻게 MonsterSpawner를 통해 스폰?
+    }
+
+    [ClientRpc]
+    private void RpcUIChangeOnStageStart()
+    {
+        UIManager.Instance.ShowUI(UIPrefab.MonsterInfoUI);
+        UIManager.Instance.ShowUI(UIPrefab.BonusGemsUI);
+        UIManager.Instance.ShowUI(UIPrefab.TimerUI);
+        UIManager.Instance.ShowUI(UIPrefab.CardPanelUI);
+        UIManager.Instance.ShowUI(UIPrefab.PlayerInfoUI);
+    }
+
+    #endregion
 
     private void ExecuteCardSubmission()
     {
@@ -156,12 +232,28 @@ public class GameLogicManager : NetworkBehaviour
 
     private void ExecuteStageEnd()
     {
-        //스테이지 4개 다돌았으면 SetPhase(DungeonEnd) 아니면 스테이지 번호 올려서 SetPhase(StageStart)로
+        //아직 몬스터 남았으면 StageStart로
+        if(currentDungeonMonsterIds.Count > 0)
+        {
+            SetPhase(GamePhase.StageStart);
+        }
+        else
+        {
+            SetPhase(GamePhase.DungeonEnd);
+        }
     }
 
     private void ExecuteDungeonEnd()
     {
         //던전 3개 다돌았으면 SetPhase(GameEnd) 아니면 던전 번호 올려서 SetPhase(DungeonStart)로
+        if(currentDungeon < 3)
+        {
+            SetPhase(GamePhase.DungeonStart);
+        }
+        else
+        {
+            SetPhase(GamePhase.GameEnd);
+        }
     }
 
     private void ExecuteGameEnd()

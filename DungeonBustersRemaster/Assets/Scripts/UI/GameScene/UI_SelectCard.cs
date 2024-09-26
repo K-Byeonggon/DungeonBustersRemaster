@@ -56,8 +56,8 @@ public class UI_SelectCard : MonoBehaviour
 
         UIManager.Instance.HideUIWithPooling(UIPrefab.SelectCardUI);
 
-        UI_GameScene gameSceneUI = UIManager.Instance.GetActiveUI(UIPrefab.GameSceneUI).GetComponent<UI_GameScene>();
-        gameSceneUI.UpdateSelectedCard();
+        UI_CardPanel cardPanelUI = UIManager.Instance.GetActiveUI(UIPrefab.CardPanelUI).GetComponent<UI_CardPanel>();
+        cardPanelUI.UpdateSelectedCard();
     }
 
     private void OnClick_Background()

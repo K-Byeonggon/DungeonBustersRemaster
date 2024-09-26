@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Panel_SelectCard : MonoBehaviour
+public class UI_CardPanel : MonoBehaviour
 {
     [SerializeField] Button Btn_SelectCard;
     [SerializeField] Button Btn_SubmitCard;
@@ -31,7 +31,7 @@ public class Panel_SelectCard : MonoBehaviour
 
     private void OnClick_SubmitCard()
     {
-
+        //여기서 서버에 카드 제출 했다고 알리기
     }
 
     public void UpdateSelectedCard()

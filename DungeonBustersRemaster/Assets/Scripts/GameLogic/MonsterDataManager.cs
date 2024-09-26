@@ -1,7 +1,9 @@
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 public class MonsterDataManager : Singleton<MonsterDataManager>
@@ -19,7 +21,7 @@ public class MonsterDataManager : Singleton<MonsterDataManager>
         if (File.Exists(jsonFilePath))
         {
             string jsonData = File.ReadAllText(jsonFilePath);
-            MonsterList monsterList = JsonUtility.FromJson<MonsterList>(jsonData);
+            MonsterList monsterList = JsonConvert.DeserializeObject<MonsterList>(jsonData);
 
             if (monsterList == null || monsterList.monsters == null)
             {
@@ -42,6 +44,38 @@ public class MonsterDataManager : Singleton<MonsterDataManager>
         await UniTask.Yield();
     }
 
+    //던전 시작시, 해당 던전에 출현할 몬스터들의 Id를 구한다.
+    public List<int> GetRandomMonsterDataIdsByDungeon(int currentDungeon, int numberOfMonsters = 4)
+    {
+        // 1. 특정 던전에 속하는 몬스터의 DataId만 필터링
+        List<int> filteredMonsterIds = LoadedMonsters
+            .Where(pair => pair.Value.Dungeon == currentDungeon) // Dungeon 정보가 일치하는지 확인
+            .Select(pair => pair.Key)  // Monster의 DataId (Key)만 추출
+            .ToList();
+
+        // 1-1. 필터링된 몬스터가 없는 경우 예외 처리
+        if (filteredMonsterIds.Count == 0)
+        {
+            Debug.LogWarning($"Dungeon {currentDungeon}에 해당하는 몬스터가 없습니다.");
+            return new List<int>(); // 빈 리스트 반환
+        }
+
+        // 2. 무작위로 선택 가능한 수가 부족할 때 처리
+        if (filteredMonsterIds.Count < numberOfMonsters)
+        {
+            Debug.LogWarning($"Dungeon {currentDungeon}에는 {numberOfMonsters}마리의 몬스터를 뽑을 수 없습니다.");
+            return new List<int>(); // 빈 리스트 반환
+        }
+
+        // 3. 무작위로 몬스터 DataId 선택
+        List<int> randomMonsterIds = filteredMonsterIds
+            .OrderBy(x => Random.Range(0, filteredMonsterIds.Count)) // 무작위로 섞기
+            .Take(numberOfMonsters) // 가능한 수만큼 선택
+            .ToList();
+
+        return randomMonsterIds;
+    }
+
     //디버그용. LoadMonsterData 이후에 부르던가 하면 됨.
     public void VerifyLoadedMonsters()
     {
@@ -59,12 +93,25 @@ public class MonsterDataManager : Singleton<MonsterDataManager>
             Monster monster = entry.Value;
             Debug.Log($"몬스터 ID: {monster.DataId}, 이름: {monster.Name}, 던전: {monster.Dungeon}, HP: {monster.HP}");
 
-            // 리워드 출력
-            string reward1 = string.Join(", ", monster.Reward1);
-            string reward2 = string.Join(", ", monster.Reward2);
-            string reward3 = string.Join(", ", monster.Reward3);
+            // Reward가 null일 경우를 처리해야 함
+            if (monster.Reward == null)
+            {
+                Debug.LogWarning($"몬스터 ID: {monster.DataId}의 Reward 데이터가 없습니다.");
+                continue;
+            }
 
-            Debug.Log($"Reward1: {reward1}, Reward2: {reward2}, Reward3: {reward3}");
+            // 이중 리스트 Reward 출력
+            for (int i = 0; i < monster.Reward.Count; i++)
+            {
+                if (monster.Reward[i] != null)
+                {
+                    Debug.Log($"Reward{i + 1}: {string.Join(", ", monster.Reward[i])}");
+                }
+                else
+                {
+                    Debug.LogWarning($"몬스터 ID: {monster.DataId}의 Reward{i + 1} 데이터가 null입니다.");
+                }
+            }
         }
     }
     #endregion
@@ -78,25 +125,33 @@ public class MonsterDataManager : Singleton<MonsterDataManager>
         {
             if (prefab != null)
             {
-                //prefab.name은 DataId와 동일해야함.
+                //prefab.name은 DataName과 동일해야함.
                 monsterPrefabs[prefab.name] = prefab;
             }
         }
         await UniTask.Yield();
     }
-
     
-    public GameObject GetMonsterPrefab(string dataId)
+    public GameObject GetMonsterPrefabByName(string dataName)
     {
-        if (monsterPrefabs.ContainsKey(dataId))
+        if (monsterPrefabs.ContainsKey(dataName))
         {
-            return monsterPrefabs[dataId];
+            return monsterPrefabs[dataName];
         }
         else
         {
-            Debug.LogError($"Invalid DataId(prefad.Name): {dataId}");
+            Debug.LogError($"Invalid DataName(prefad.Name): {dataName}");
             return null;
         }
+    }
+
+    public GameObject GetMonsterPrefabById(int dataId)
+    {
+        string dataName = LoadedMonsters[dataId].DataName;
+
+        GameObject monsterPrefab = GetMonsterPrefabByName(dataName);
+
+        return monsterPrefab;
     }
     
     #endregion

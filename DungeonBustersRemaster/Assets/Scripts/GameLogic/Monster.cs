@@ -11,9 +11,7 @@ public class Monster
     public string Name;
     public int Dungeon;
     public int HP;
-    public List<int> Reward1;
-    public List<int> Reward2;
-    public List<int> Reward3;
+    public List<List<int>> Reward;
 }
 
 [Serializable]

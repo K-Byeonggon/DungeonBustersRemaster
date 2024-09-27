@@ -32,6 +32,8 @@ public class UI_CardPanel : MonoBehaviour
     private void OnClick_SubmitCard()
     {
         //여기서 서버에 카드 제출 했다고 알리기
+        MyPlayerGameData playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
+        playerGameData.IsCardSubmitted = true;
     }
 
     public void UpdateSelectedCard()

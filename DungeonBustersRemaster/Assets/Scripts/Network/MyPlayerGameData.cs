@@ -21,6 +21,9 @@ public class MyPlayerGameData : NetworkBehaviour
     [SyncVar(hook = nameof(OnSubmittedCardNumChanged))]
     private int submittedCardNum;
 
+    [SyncVar(hook = nameof(OnIsCardSubmittedChanged))]
+    private bool isCardSubmitted;
+
     [SyncVar(hook = nameof(OnIsAttackSuccessChanged))]
     private bool isAttackSuccess;
 
@@ -38,6 +41,12 @@ public class MyPlayerGameData : NetworkBehaviour
     {
         get => isAttackSuccess;
         set { isAttackSuccess = value; }
+    }
+
+    public bool IsCardSubmitted
+    {
+        get => isCardSubmitted;
+        set { isCardSubmitted = value; }
     }
 
     public override void OnStartClient()
@@ -173,6 +182,11 @@ public class MyPlayerGameData : NetworkBehaviour
     }
 
     private void OnIsAttackSuccessChanged(bool oldBool, bool newBool)
+    {
+
+    }
+
+    private void OnIsCardSubmittedChanged(bool oldBool, bool newBool)
     {
 
     }

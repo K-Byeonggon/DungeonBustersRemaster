@@ -193,6 +193,8 @@ public class GameLogicManager : NetworkBehaviour
         //몬스터 생성하면서 UI도 다시띄워준다.
         //이거가 Server에서만 실행되겠네. ClientRpc로 요청보내자.
         RpcUIChangeOnStageStart();
+
+        SetPhase(GamePhase.CardSubmission);
     }
 
     [ClientRpc]

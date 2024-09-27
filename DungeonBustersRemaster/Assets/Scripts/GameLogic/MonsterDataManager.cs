@@ -147,6 +147,12 @@ public class MonsterDataManager : Singleton<MonsterDataManager>
 
     public GameObject GetMonsterPrefabById(int dataId)
     {
+        if (!LoadedMonsters.ContainsKey(dataId))
+        {
+            Debug.LogError($"Monster with DataId {dataId} not found in LoadedMonsters.");
+            return null; // 적절한 기본값 반환 또는 예외 처리
+        }
+
         string dataName = LoadedMonsters[dataId].DataName;
 
         GameObject monsterPrefab = GetMonsterPrefabByName(dataName);

@@ -1,8 +1,7 @@
 using Mirror;
-using Org.BouncyCastle.Security;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public enum GamePhase
@@ -21,9 +20,8 @@ public enum GamePhase
 public class GameLogicManager : NetworkBehaviour
 {
     //NetworkBehaviour에 Singleton패턴을 적용하면 NetworkManager에 의한 관리와 충돌할 수 있다.
-    public static GameLogicManager Instance;
 
-    public event Action OnMonsterSpawn;
+    [SerializeField] MonsterSpawner monsterSpawner;
 
     [SyncVar(hook = nameof(OnPhaseChanged))]
     private GamePhase currentPhase = GamePhase.GameStart;
@@ -37,20 +35,23 @@ public class GameLogicManager : NetworkBehaviour
 
     [SyncVar(hook = nameof(OnCurrentStageChanged))]
     private int currentStage;
+
     [SyncVar(hook = nameof(OnCurrentMonsterDataIdChanged))]
     private int currentMonsterDataId;
 
-    public int CurrentMonsterDataId => currentMonsterDataId;
+    private readonly SyncList<int> bonusGems = new SyncList<int>();
+
+    public List<int> BonusGems => bonusGems.ToList<int>();
 
     private void Awake()
     {
+        MyNetworkRoomManager.Instance.OnAllGamePlayerLoaded += StartGame;
+
+        bonusGems.OnChange += OnBonusGemsChanged;
+
         InitializePhaseActions();
     }
 
-    private void Start()
-    {
-        MyNetworkRoomManager.Instance.OnAllGamePlayerLoaded += StartGame;
-    }
 
     private void InitializePhaseActions()
     {
@@ -86,7 +87,7 @@ public class GameLogicManager : NetworkBehaviour
     [Server]
     private void ExecuteCurrentPhase()
     {
-        if(phaseActions.TryGetValue(currentPhase, out Action action))
+        if (phaseActions.TryGetValue(currentPhase, out Action action))
         {
             action.Invoke();
         }
@@ -121,6 +122,18 @@ public class GameLogicManager : NetworkBehaviour
         UI_MonsterInfo.UpdateMonsterInfo(newMonsterId);
     }
 
+    private void OnBonusGemsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
+    {
+        switch(op)
+        {
+            case SyncList<int>.Operation.OP_ADD:
+                UI_BonusGems.UpdateBonusGems(BonusGems);
+                break;
+            case SyncList<int>.Operation.OP_SET:
+                UI_BonusGems.UpdateBonusGems(BonusGems);
+                break;
+        }
+    }
     #endregion
 
 
@@ -140,6 +153,8 @@ public class GameLogicManager : NetworkBehaviour
         currentDungeon = 0;
         currentStage = 0;
         currentDungeonMonsterIds.Clear();
+        bonusGems.AddRange(new List<int>() { 0, 0, 0 });
+
     }
 
     private void ExecuteDungeonStart()
@@ -170,8 +185,8 @@ public class GameLogicManager : NetworkBehaviour
         currentStage++;
         currentMonsterDataId = currentDungeonMonsterIds.Dequeue();
 
-        //여기서 몬스터 모델 띄워줘야하는데
-        RpcMonsterSpawnOnStageStart();
+        //currentMonsterDataId가 SyncVar지만, 동기화 지연때문에 값을 직접 전달해야함. 아니면 이것도 hook함수로 처리하든지.
+        RpcMonsterSpawnOnStageStart(currentMonsterDataId);
 
         //몬스터 생성하면서 UI도 다시띄워준다.
         //이거가 Server에서만 실행되겠네. ClientRpc로 요청보내자.
@@ -179,14 +194,11 @@ public class GameLogicManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void RpcMonsterSpawnOnStageStart()
+    private void RpcMonsterSpawnOnStageStart(int monsterDataId)
     {
-        //어떻게 MonsterSpawner를 통해 스폰?
-        //OnMonsterSpawn?.Invoke();
-        MonsterSpawner spawner = FindObjectOfType<MonsterSpawner>();
-        if (spawner != null)
+        if (monsterSpawner != null)
         {
-            spawner.SpawnMonster();
+            monsterSpawner.SpawnMonster(monsterDataId);
         }
     }
 
@@ -222,7 +234,7 @@ public class GameLogicManager : NetworkBehaviour
     private void ExecuteStageEnd()
     {
         //아직 몬스터 남았으면 StageStart로
-        if(currentDungeonMonsterIds.Count > 0)
+        if (currentDungeonMonsterIds.Count > 0)
         {
             SetPhase(GamePhase.StageStart);
         }
@@ -235,7 +247,7 @@ public class GameLogicManager : NetworkBehaviour
     private void ExecuteDungeonEnd()
     {
         //던전 3개 다돌았으면 SetPhase(GameEnd) 아니면 던전 번호 올려서 SetPhase(DungeonStart)로
-        if(currentDungeon < 3)
+        if (currentDungeon < 3)
         {
             SetPhase(GamePhase.DungeonStart);
         }

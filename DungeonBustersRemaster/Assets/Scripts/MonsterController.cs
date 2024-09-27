@@ -25,20 +25,18 @@ public class MonsterController : MonoBehaviour
 
     private void OnEnable()
     {
-        SetMonster();
+        //SetMonster();
     }
 
     private void OnDisable()
     {
-        ResetMonster();
+        //ResetMonster();
     }
 
 
     //MonsterSpawner를 통해 활성화되면 실행됨.
-    public void SetMonster()
+    public void SetMonster(int monsterDataId)
     {
-        //GameLogicManager에서 현재 몬스터의 DataId 가져오기
-        int monsterDataId = GameLogicManager.Instance.CurrentMonsterDataId;
 
         //모델이 이미 있는지 Dictionary검사
         if (monsterModels.ContainsKey(monsterDataId))
@@ -58,11 +56,12 @@ public class MonsterController : MonoBehaviour
 
     public void ResetMonster()
     {
-        int monsterDataId = GameLogicManager.Instance.CurrentMonsterDataId;
-
-        if (monsterModels.ContainsKey(monsterDataId))
+        foreach(var kvp in monsterModels)
         {
-            monsterModels[monsterDataId].SetActive(false);
+            if (kvp.Value.activeSelf)
+            {
+                kvp.Value.SetActive(false);
+            }
         }
 
         animator = null;

@@ -74,8 +74,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -92,13 +92,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 40
+  m_fontSizeBase: 40
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -555,7 +555,7 @@ GameObject:
   - component: {fileID: 7100287828206926850}
   - component: {fileID: 5552060755316203722}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Text_SubmitCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -983,7 +983,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Btn_SelectCard: {fileID: 4146743465181166316}
   Btn_SubmitCard: {fileID: 5630841507440606789}
+  Text_SubmitCard: {fileID: 5552060755316203722}
   Img_SelectedCard: {fileID: 1515661605373204951}
+  Img_Submitted: {fileID: 6219505499087585864}
   Text_CardNum: {fileID: 2650196708728128284}
 --- !u!1 &7850533230848097873
 GameObject:

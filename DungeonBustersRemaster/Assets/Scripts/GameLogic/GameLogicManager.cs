@@ -24,6 +24,8 @@ public class GameLogicManager : NetworkBehaviour
 
     [SerializeField] MonsterSpawner monsterSpawner;
 
+    private int gamePlayerCount;
+
     [SyncVar(hook = nameof(OnPhaseChanged))]
     private GamePhase currentPhase = GamePhase.GameStart;
 
@@ -40,12 +42,14 @@ public class GameLogicManager : NetworkBehaviour
     [SyncVar(hook = nameof(OnCurrentMonsterDataIdChanged))]
     private int currentMonsterDataId;
 
+    [SyncVar(hook = nameof(OnSumittedPlayerCountChanged))]
+    private int submittedPlayerCount;
+
     private readonly SyncList<int> bonusGems = new SyncList<int>();
 
     public List<int> BonusGems => bonusGems.ToList<int>();
 
-
-
+    
     public override void OnStartServer()
     {
         if (Instance == null)
@@ -57,7 +61,7 @@ public class GameLogicManager : NetworkBehaviour
             Debug.LogWarning("Multiple GameLogicManagers in the scene.");
         }
     }
-
+    
     public override void OnStartClient()
     {
         if (Instance == null)
@@ -75,6 +79,8 @@ public class GameLogicManager : NetworkBehaviour
         MyNetworkRoomManager.Instance.OnAllGamePlayerLoaded += StartGame;
 
         bonusGems.OnChange += OnBonusGemsChanged;
+
+
 
         InitializePhaseActions();
     }
@@ -98,8 +104,10 @@ public class GameLogicManager : NetworkBehaviour
 
     //이거를 적절한 시기에 불러야할듯?
     [Server]
-    private void StartGame()
+    private void StartGame(int gamePlayerCount)
     {
+        this.gamePlayerCount = gamePlayerCount;
+        Debug.Log(this.gamePlayerCount + "명의 GamePlayer");
         SetPhase(GamePhase.GameStart);
     }
 
@@ -161,6 +169,12 @@ public class GameLogicManager : NetworkBehaviour
                 break;
         }
     }
+
+    private void OnSumittedPlayerCountChanged(int oldCount, int newCount)
+    {
+        Debug.Log($"SubmittedPlayerCountChanged: {oldCount} -> {newCount}");
+        ServerCheckSubmittedPlayerCount();
+    }
     #endregion
 
 
@@ -199,12 +213,7 @@ public class GameLogicManager : NetworkBehaviour
 
     private void ExecuteStageStart()
     {
-        //이번 스테이지에 등장할 몬스터가 결정된다. 아마 Dictionary의 Queue에서 하나씩 뽑아오겠지
-        //그러면 몬스터는 Monster의 DataId로 뽑아오는게 맞다.
-        //모든 몬스터 정보는 MonsterDataManager에 DataId를 Key로, Monster(class)를 Value로 저장하고 있으니까,
-        //DataId로 Monster정보를 받아서 Monster(gameScene)의 정보를 갱신해주고, 갱신한걸로 UI 바꾸면 된다.
-        //그러면 몬스터 정보를 엄...모든 클라에서 봐야하니까, SyncVar로 하던가 ClienRpc로 클라에 갱신요청하던가 해야함.
-        //근데 이런 게임 진행은 Server에서만 관리하니까.. 머리가 아프다
+        //이번 스테이지에 등장할 몬스터가 결정된다.
 
         //다음 몬스터를 향해 달려가는 애니메이션이 재생된다.
 
@@ -216,17 +225,15 @@ public class GameLogicManager : NetworkBehaviour
         RpcMonsterSpawnOnStageStart(currentMonsterDataId);
 
         //몬스터 생성하면서 UI도 다시띄워준다.
-        //이거가 Server에서만 실행되겠네. ClientRpc로 요청보내자.
         RpcUIChangeOnStageStart();
+
+        SetPhase(GamePhase.CardSubmission);
     }
 
     [ClientRpc]
     private void RpcMonsterSpawnOnStageStart(int monsterDataId)
     {
-        if (monsterSpawner != null)
-        {
-            monsterSpawner.SpawnMonster(monsterDataId);
-        }
+        monsterSpawner.SpawnMonster(monsterDataId);
     }
 
     [ClientRpc]
@@ -241,24 +248,64 @@ public class GameLogicManager : NetworkBehaviour
 
     #endregion
 
+    #region CardSubmission
+
     private void ExecuteCardSubmission()
     {
         //모든 플레이어가 카드를 제출할 때까지 대기한다.
     }
 
+    [Command(requiresAuthority = false)]
+    public void CmdAddSubmittedPlayerCount()
+    {
+        submittedPlayerCount++;
+    }
+    [Command(requiresAuthority = false)]
+    public void CmdSubSubmittedPlayerCount()
+    {
+        submittedPlayerCount--;
+    }
+
+    private void ServerCheckSubmittedPlayerCount()
+    {
+        if (submittedPlayerCount == gamePlayerCount)
+        {
+            SetPhase(GamePhase.ResultCalculation);
+        }
+    }
+
+    #endregion
+
     private void ExecuteResultCalculation()
     {
         //플레이어가 제출한 카드의 숫자로 현재 스테이지의 몬스터를 쓰러뜨릴수 있는지 계산한다.
         //플레이어의 공격 성공여부를 갱신해준다.
-        //
+        ResultCalculator calculator = new ResultCalculator();
+        calculator.SetSubmittedCardNums();
+        int sumOfAttack = calculator.GetSumOfAttack();
+        int monsterHP = MonsterDataManager.Instance.LoadedMonsters[currentMonsterDataId].HP;
+
+        Debug.Log($"sumOfAttack: {sumOfAttack}  HP: {monsterHP}");
+        if (sumOfAttack >= monsterHP)
+        {
+            //이김
+            Debug.Log("You Win");
+        }
+        else
+        {
+            //짐
+            Debug.Log("You Lose");
+        }
     }
+
+
 
     private void ExecuteRewardDistribution()
     {
         //승리후 보석분배, 보너스보석 분배 / 패배후 보석회수가 이루어진다.
     }
 
-    [Command]
+    [Command(requiresAuthority = false)]
     public void CmdSubBonusGems(GemColor color, int subAmount)
     {
         bonusGems[(int)color] -= subAmount;

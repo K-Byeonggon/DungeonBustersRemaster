@@ -1,13 +1,14 @@
 using Mirror;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public class ResultCalculator
 {
     private Dictionary<uint, int> submittedCardNums = new Dictionary<uint, int>();
     private Dictionary<int, int> cardCount = new Dictionary<int, int>();    // 각 카드 번호의 등장 횟수를 기록
 
-    [Server]
+
     public void SetSubmittedCardNums()
     {
         //cardCount초기화
@@ -31,7 +32,16 @@ public class ResultCalculator
             }
         }
 
+        LogSubmittedCardNums();
+
         SetAttackSuccess();
+    }
+    public void LogSubmittedCardNums()
+    {
+        foreach (var entry in submittedCardNums)
+        {
+            Debug.Log($"Key: {entry.Key}, Value: {entry.Value}");
+        }
     }
 
     private void SetAttackSuccess()

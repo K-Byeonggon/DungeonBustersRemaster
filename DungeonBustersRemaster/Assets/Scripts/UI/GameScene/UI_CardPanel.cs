@@ -9,8 +9,12 @@ public class UI_CardPanel : MonoBehaviour
 {
     [SerializeField] Button Btn_SelectCard;
     [SerializeField] Button Btn_SubmitCard;
+    [SerializeField] TextMeshProUGUI Text_SubmitCard;
     [SerializeField] Image Img_SelectedCard;
+    [SerializeField] Image Img_Submitted;
     [SerializeField] TextMeshProUGUI Text_CardNum;
+
+    private bool isSubmit = true;
 
     private void OnEnable()
     {
@@ -31,8 +35,35 @@ public class UI_CardPanel : MonoBehaviour
 
     private void OnClick_SubmitCard()
     {
-        //여기서 서버에 카드 제출 했다고 알리기
+        //어떻게 제출 여부를 GameLogicManager에 알리나?
+        //그냥 GameLogicManager에 SubmittedPlayerNum을 증가시키고 플레이어 수와 알맞게 되면 진행하는게?
+        if (isSubmit)
+        {
+            SubmitCard();
+        }
+        else
+        {
+            CancelCard();
+        }
+
     }
+
+    private void SubmitCard()
+    {
+        GameLogicManager.Instance.CmdAddSubmittedPlayerCount();
+        Text_SubmitCard.text = "제출 취소";
+        Img_Submitted.gameObject.SetActive(true);
+        isSubmit = false;
+    }
+
+    private void CancelCard()
+    {
+        GameLogicManager.Instance.CmdSubSubmittedPlayerCount();
+        Text_SubmitCard.text = "카드 제출";
+        Img_Submitted.gameObject.SetActive(false);
+        isSubmit = true;
+    }
+
 
     public void UpdateSelectedCard()
     {

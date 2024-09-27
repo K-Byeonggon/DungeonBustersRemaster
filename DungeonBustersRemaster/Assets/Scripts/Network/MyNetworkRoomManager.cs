@@ -10,7 +10,7 @@ using UnityEngine;
 public class MyNetworkRoomManager : NetworkRoomManager
 {
     public event Action OnRoomPlayersUpdated;
-    public event Action OnAllGamePlayerLoaded;
+    public event Action<int> OnAllGamePlayerLoaded;
 
     //GamePlayScene에 들어간 플레이수 추적(PlayerColor정할 때 쓰임)
     private int gamePlayerCount = 0;
@@ -195,7 +195,7 @@ public class MyNetworkRoomManager : NetworkRoomManager
         Debug.Log(roomSlots.Count);
         if(gamePlayerCount == roomSlots.Count)
         {
-            OnAllGamePlayerLoaded?.Invoke();
+            OnAllGamePlayerLoaded?.Invoke(gamePlayerCount);
         }
 
         return base.OnRoomServerSceneLoadedForPlayer(conn, roomPlayer, gamePlayer);

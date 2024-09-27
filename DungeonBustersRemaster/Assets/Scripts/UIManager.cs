@@ -40,6 +40,8 @@ public enum UIPrefab
     TimerUI,
     CardPanelUI,
     PlayerInfoUI,
+    GetBonusUI,
+    WaitForOtherUI,
 
     SelectCardUI,
     Content_Card,

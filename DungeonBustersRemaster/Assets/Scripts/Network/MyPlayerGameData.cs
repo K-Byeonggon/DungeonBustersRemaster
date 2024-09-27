@@ -126,6 +126,26 @@ public class MyPlayerGameData : NetworkBehaviour
         gems.AddRange(newGems);
     }
 
+    [Server]
+    public void AddGem(GemColor color, int amount)
+    {
+        if(amount < 0)
+        {
+            Debug.LogError($"Add amount < 0");
+            return;
+        }
+
+        gems[(int)color] += amount;
+    }
+
+    [Server]
+    public int LoseAllGemByColor(GemColor color)
+    {
+        int temp = gems[(int)color];
+        gems[(int)color] = 0;
+        return temp;
+    }
+
     #region hook
     private void OnHandsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {

@@ -45,6 +45,8 @@ public class GameLogicManager : NetworkBehaviour
 
     private void Awake()
     {
+
+
         MyNetworkRoomManager.Instance.OnAllGamePlayerLoaded += StartGame;
 
         bonusGems.OnChange += OnBonusGemsChanged;
@@ -229,6 +231,12 @@ public class GameLogicManager : NetworkBehaviour
     private void ExecuteRewardDistribution()
     {
         //승리후 보석분배, 보너스보석 분배 / 패배후 보석회수가 이루어진다.
+    }
+
+    [Command]
+    public void CmdSubBonusGems(GemColor color, int subAmount)
+    {
+        bonusGems[(int)color] -= subAmount;
     }
 
     private void ExecuteStageEnd()

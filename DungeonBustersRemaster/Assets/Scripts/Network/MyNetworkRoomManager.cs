@@ -157,6 +157,7 @@ public class MyNetworkRoomManager : NetworkRoomManager
             UIManager.Instance.HideUIWithTimer(UIPrefab.RoomUI);
             UIManager.Instance.ShowUI(UIPrefab.LobbyUI);
             UI_Notify.Show("호스트가 연결을 끊어 종료되었습니다.");
+            //offlineScene으로
         }
 
         if (Utils.IsSceneActive(GameplayScene))

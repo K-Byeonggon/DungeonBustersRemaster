@@ -20,6 +20,7 @@ public enum GamePhase
 public class GameLogicManager : NetworkBehaviour
 {
     //NetworkBehaviour에 Singleton패턴을 적용하면 NetworkManager에 의한 관리와 충돌할 수 있다.
+    public static GameLogicManager Instance;
 
     [SerializeField] MonsterSpawner monsterSpawner;
 
@@ -43,10 +44,34 @@ public class GameLogicManager : NetworkBehaviour
 
     public List<int> BonusGems => bonusGems.ToList<int>();
 
+
+
+    public override void OnStartServer()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Debug.LogWarning("Multiple GameLogicManagers in the scene.");
+        }
+    }
+
+    public override void OnStartClient()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Debug.LogWarning("Multiple GameLogicManagers in the scene.");
+        }
+    }
+
     private void Awake()
     {
-
-
         MyNetworkRoomManager.Instance.OnAllGamePlayerLoaded += StartGame;
 
         bonusGems.OnChange += OnBonusGemsChanged;

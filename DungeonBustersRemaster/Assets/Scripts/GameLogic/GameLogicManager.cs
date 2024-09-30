@@ -6,6 +6,7 @@ using UnityEngine;
 
 public enum GamePhase
 {
+    BeforeGameStart,
     GameStart,
     DungeonStart,
     StageStart,
@@ -26,8 +27,9 @@ public class GameLogicManager : NetworkBehaviour
 
     private int gamePlayerCount;
 
-    [SyncVar(hook = nameof(OnPhaseChanged))]
-    private GamePhase currentPhase = GamePhase.GameStart;
+
+    private GamePhase currentPhase = GamePhase.BeforeGameStart;
+
 
     private Dictionary<GamePhase, Action> phaseActions;
 
@@ -39,104 +41,48 @@ public class GameLogicManager : NetworkBehaviour
     [SyncVar(hook = nameof(OnCurrentStageChanged))]
     private int currentStage;
 
-    [SyncVar(hook = nameof(OnCurrentMonsterDataIdChanged))]
     private int currentMonsterDataId;
+
+
+
+    private readonly SyncList<int> bonusGems = new SyncList<int>();
 
     [SyncVar(hook = nameof(OnSumittedPlayerCountChanged))]
     private int submittedPlayerCount;
 
-    private readonly SyncList<int> bonusGems = new SyncList<int>();
-
     public List<int> BonusGems => bonusGems.ToList<int>();
 
-    
-    public override void OnStartServer()
+
+    #region Property
+
+    public int CurrentMonsterDataId
     {
-        if (Instance == null)
+        get => currentMonsterDataId;
+        set
         {
-            Instance = this;
-        }
-        else
-        {
-            Debug.LogWarning("Multiple GameLogicManagers in the scene.");
-        }
-    }
-    
-    public override void OnStartClient()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Debug.LogWarning("Multiple GameLogicManagers in the scene.");
+            int oldDataId = currentMonsterDataId;
+            currentMonsterDataId = value;
+            OnCurrentMonsterDataIdChanged(oldDataId, currentMonsterDataId);
         }
     }
 
-    private void Awake()
+    public GamePhase CurrentPhase
     {
-        MyNetworkRoomManager.Instance.OnAllGamePlayerLoaded += StartGame;
-
-        bonusGems.OnChange += OnBonusGemsChanged;
-
-
-
-        InitializePhaseActions();
-    }
-
-
-    private void InitializePhaseActions()
-    {
-        phaseActions = new Dictionary<GamePhase, Action>
+        get => currentPhase;
+        set
         {
-            { GamePhase.GameStart, ExecuteGameStart },
-            { GamePhase.DungeonStart, ExecuteDungeonStart },
-            { GamePhase.StageStart, ExecuteStageStart },
-            { GamePhase.CardSubmission, ExecuteCardSubmission },
-            { GamePhase.ResultCalculation, ExecuteResultCalculation },
-            { GamePhase.RewardDistribution, ExecuteRewardDistribution },
-            { GamePhase.StageEnd, ExecuteStageEnd },
-            { GamePhase.DungeonEnd, ExecuteDungeonEnd },
-            { GamePhase.GameEnd, ExecuteGameEnd }
-        };
-    }
-
-    //이거를 적절한 시기에 불러야할듯?
-    [Server]
-    private void StartGame(int gamePlayerCount)
-    {
-        this.gamePlayerCount = gamePlayerCount;
-        Debug.Log(this.gamePlayerCount + "명의 GamePlayer");
-        SetPhase(GamePhase.GameStart);
-    }
-
-    //currentPhase는 SyncVar로 모든 클라에 갱신된다.
-    [Server]
-    private void SetPhase(GamePhase newPhase)
-    {
-        currentPhase = newPhase;
-        ExecuteCurrentPhase();
-    }
-
-    [Server]
-    private void ExecuteCurrentPhase()
-    {
-        if (phaseActions.TryGetValue(currentPhase, out Action action))
-        {
-            action.Invoke();
-        }
-        else
-        {
-            Debug.LogError($"No action defind for phase {currentPhase}");
+            GamePhase oldPhase = currentPhase;
+            currentPhase = value;
+            OnPhaseChanged(oldPhase, currentPhase);
         }
     }
-
+    #endregion
 
     #region hook
     private void OnPhaseChanged(GamePhase oldPhase, GamePhase newPhase)
     {
         Debug.Log($"PhaseChanged: {oldPhase} -> {newPhase}");
+
     }
 
     private void OnCurrentDungeonChanged(int oldDungeon, int newDungeon)
@@ -159,7 +105,7 @@ public class GameLogicManager : NetworkBehaviour
 
     private void OnBonusGemsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
-        switch(op)
+        switch (op)
         {
             case SyncList<int>.Operation.OP_ADD:
                 UI_BonusGems.UpdateBonusGems(BonusGems);
@@ -177,37 +123,151 @@ public class GameLogicManager : NetworkBehaviour
     }
     #endregion
 
+    public override void OnStartServer()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Debug.LogWarning("Multiple GameLogicManagers in the scene.");
+        }
+    }
+
+    public override void OnStartClient()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Debug.LogWarning("Multiple GameLogicManagers in the scene.");
+        }
+    }
+
+    private void Awake()
+    {
+        MyNetworkRoomManager.Instance.OnAllGamePlayerLoaded += StartGame;
+
+        bonusGems.OnChange += OnBonusGemsChanged;
+
+        InitializePhaseActions();
+    }
+
+
+    private void InitializePhaseActions()
+    {
+        phaseActions = new Dictionary<GamePhase, Action>
+        {
+            { GamePhase.GameStart, ExecuteGameStart },
+            { GamePhase.DungeonStart, ExecuteDungeonStart },
+            { GamePhase.StageStart, ExecuteStageStart },
+            { GamePhase.CardSubmission, ExecuteCardSubmission },
+            { GamePhase.ResultCalculation, ExecuteResultCalculation },
+            { GamePhase.RewardDistribution, ExecuteRewardDistribution },
+            { GamePhase.StageEnd, ExecuteStageEnd },
+            { GamePhase.DungeonEnd, ExecuteDungeonEnd },
+            { GamePhase.GameEnd, ExecuteGameEnd }
+        };
+    }
+
+
+    [Server]
+    private void StartGame(int gamePlayerCount)
+    {
+        this.gamePlayerCount = gamePlayerCount;
+        Debug.Log(this.gamePlayerCount + "명의 GamePlayer");
+        
+        if (isServer)
+        {
+            RpcSetPhase(GamePhase.GameStart);
+        }
+
+    }
+
+
+    [ClientRpc]
+    private void RpcSetPhase(GamePhase newPhase)
+    {
+        //페이즈 변경은 모든 클라에서
+        CurrentPhase = newPhase;
+
+        //페이즈의 수행은 서버에서만
+        if (isServer)
+        {
+            ServerExecuteCurrentPhase();
+        }
+    }
+
+    [Server]
+    private void ServerExecuteCurrentPhase()
+    {
+        if (phaseActions.TryGetValue(currentPhase, out Action action))
+        {
+            action.Invoke();
+        }
+        else
+        {
+            Debug.LogError($"No action defind for rpcphase {currentPhase}");
+        }
+    }
+
+
+
 
     #region Phase Action
+
+    #region GameStart
+    [Server]
     private void ExecuteGameStart()
     {
         Debug.Log("Game Start Phase");
 
+        ServerInitializeGame();
 
-        InitializeGame();
+        RpcSetPhase(GamePhase.DungeonStart);
 
-        SetPhase(GamePhase.DungeonStart);
     }
 
-    private void InitializeGame()
+
+    [Server]
+    private void ServerInitializeGame()
     {
+        //서버에서만 수행되는 초기화 과정
         currentDungeon = 0;
         currentStage = 0;
         currentDungeonMonsterIds.Clear();
         bonusGems.AddRange(new List<int>() { 0, 0, 0 });
-
     }
 
+    #endregion
+
+    #region DungeonStart
+    [Server]
     private void ExecuteDungeonStart()
     {
-        //이번 던전에서 등장할 몬스터들(4마리) 결정된다.
-        //아마 Dictionary<int, Queue<int>> 같은거에 저장되지 않을까? (int = dungeonNum, int = monsterDataId)
+        ServerExecuteDungeonStart();
+
+        //SetPhase(GamePhase.StageStart);
+        if (isServer)
+        {
+            RpcSetPhase(GamePhase.StageStart);
+
+        }
+    }
+
+    [Server]
+    private void ServerExecuteDungeonStart()
+    {
         currentDungeon++;
+        //이번 던전의 몬스터 큐 뽑기(4마리의 몬스터)
         List<int> monsterIdList = MonsterDataManager.Instance.GetRandomMonsterDataIdsByDungeon(currentDungeon);
         currentDungeonMonsterIds = new Queue<int>(monsterIdList);
-
-        SetPhase(GamePhase.StageStart);
     }
+
+    #endregion
 
     #region StageStart
 
@@ -217,28 +277,41 @@ public class GameLogicManager : NetworkBehaviour
 
         //다음 몬스터를 향해 달려가는 애니메이션이 재생된다.
 
-        //이거는 SyncVar라서 클라에도 알아서 변경됨
+
+        ServerExecuteStageStart();
+
+
+        RpcExecuteStageStart();
+
+        //SetPhase(GamePhase.CardSubmission);
+        if (isServer)
+        {
+            RpcSetPhase(GamePhase.CardSubmission);
+
+        }
+    }
+    [Server]
+    private void ServerExecuteStageStart()
+    {
         currentStage++;
+        //Deque는 서버에서, 적용은 Rpc로
         currentMonsterDataId = currentDungeonMonsterIds.Dequeue();
+        RpcSetCurrentMonsterDataId(currentMonsterDataId);
+    }
+    [ClientRpc]
+    private void RpcSetCurrentMonsterDataId(int serverMonsterDataId)
+    {
+        //몬스터 ID변경 (UI 변경)
+        CurrentMonsterDataId = serverMonsterDataId;
 
-        //currentMonsterDataId가 SyncVar지만, 동기화 지연때문에 값을 직접 전달해야함. 아니면 이것도 hook함수로 처리하든지.
-        RpcMonsterSpawnOnStageStart(currentMonsterDataId);
-
-        //몬스터 생성하면서 UI도 다시띄워준다.
-        RpcUIChangeOnStageStart();
-
-        SetPhase(GamePhase.CardSubmission);
+        //몬스터 스폰
+        monsterSpawner.SpawnMonster(serverMonsterDataId);
     }
 
     [ClientRpc]
-    private void RpcMonsterSpawnOnStageStart(int monsterDataId)
+    private void RpcExecuteStageStart()
     {
-        monsterSpawner.SpawnMonster(monsterDataId);
-    }
 
-    [ClientRpc]
-    private void RpcUIChangeOnStageStart()
-    {
         UIManager.Instance.ShowUI(UIPrefab.MonsterInfoUI);
         UIManager.Instance.ShowUI(UIPrefab.BonusGemsUI);
         UIManager.Instance.ShowUI(UIPrefab.TimerUI);
@@ -270,7 +343,7 @@ public class GameLogicManager : NetworkBehaviour
     {
         if (submittedPlayerCount == gamePlayerCount)
         {
-            SetPhase(GamePhase.ResultCalculation);
+            RpcSetPhase(GamePhase.ResultCalculation);
         }
     }
 
@@ -316,11 +389,11 @@ public class GameLogicManager : NetworkBehaviour
         //아직 몬스터 남았으면 StageStart로
         if (currentDungeonMonsterIds.Count > 0)
         {
-            SetPhase(GamePhase.StageStart);
+            RpcSetPhase(GamePhase.StageStart);
         }
         else
         {
-            SetPhase(GamePhase.DungeonEnd);
+            RpcSetPhase(GamePhase.DungeonEnd);
         }
     }
 
@@ -329,11 +402,11 @@ public class GameLogicManager : NetworkBehaviour
         //던전 3개 다돌았으면 SetPhase(GameEnd) 아니면 던전 번호 올려서 SetPhase(DungeonStart)로
         if (currentDungeon < 3)
         {
-            SetPhase(GamePhase.DungeonStart);
+            RpcSetPhase(GamePhase.DungeonStart);
         }
         else
         {
-            SetPhase(GamePhase.GameEnd);
+            RpcSetPhase(GamePhase.GameEnd);
         }
     }
 

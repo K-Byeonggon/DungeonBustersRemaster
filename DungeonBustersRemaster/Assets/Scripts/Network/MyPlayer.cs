@@ -95,7 +95,7 @@ public class MyPlayer : NetworkBehaviour
 
     private void CharacterIndexChanged(int oldIndex, int newIndex)
     {
-        Debug.Log($"{oldIndex} -> {newIndex}");
+        Debug.Log($"Player{netId} CharacterIndexChanged: {oldIndex} -> {newIndex}");
 
         //플레이어 모델링 바꾸기
         SetCharacterModel(newIndex);

@@ -52,12 +52,11 @@ public class UI_SelectCard : MonoBehaviour
 
     private void Action_OnClickCard(int cardNum)
     {
-        playerGameData.SubmittedCardNum = cardNum;
+        //playerGameData.SubmittedCardNum = cardNum;
+
+        playerGameData.CmdSetSubmittedCardNum(cardNum);
 
         UIManager.Instance.HideUIWithPooling(UIPrefab.SelectCardUI);
-
-        UI_CardPanel cardPanelUI = UIManager.Instance.GetActiveUI(UIPrefab.CardPanelUI).GetComponent<UI_CardPanel>();
-        cardPanelUI.UpdateSelectedCard();
     }
 
     private void OnClick_Background()

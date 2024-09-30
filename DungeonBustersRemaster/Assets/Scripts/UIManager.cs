@@ -205,6 +205,8 @@ public class UIManager : Singleton<UIManager>
         {
             return uiInstance;
         }
+
+        Debug.LogError($"{instanceName} is not Active");
         return null;
     }
 

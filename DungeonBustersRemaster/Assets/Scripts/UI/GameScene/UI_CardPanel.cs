@@ -20,6 +20,7 @@ public class UI_CardPanel : MonoBehaviour
     {
         Btn_SelectCard.onClick.AddListener(OnClick_SelectCard);
         Btn_SubmitCard.onClick.AddListener(OnClick_SubmitCard);
+
     }
 
     private void OnDisable()
@@ -71,7 +72,7 @@ public class UI_CardPanel : MonoBehaviour
         MyPlayerGameData playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
 
         Img_SelectedCard.sprite = SpriteManager.Instance.GetCardSprite(playerData.PlayerColor);
-        Text_CardNum.text = playerGameData.SubmittedCardNum.ToString();
+        Text_CardNum.text = playerGameData.SubmittedCardNum != 0 ? playerGameData.SubmittedCardNum.ToString() : string.Empty;
     }
 
 }

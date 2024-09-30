@@ -3,11 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+//공격 성공한 카드의 정렬용.
+public class PlayerCardInfo
+{
+    public uint NetId { get; set; }
+    public int CardNumber { get; set; }
+
+    public PlayerCardInfo(uint netId, int cardNumber)
+    {
+        NetId = netId;
+        CardNumber = cardNumber;
+    }
+}
+
 public class ResultCalculator
 {
     private Dictionary<uint, int> submittedCardNums = new Dictionary<uint, int>();
     private Dictionary<int, int> cardCount = new Dictionary<int, int>();    // 각 카드 번호의 등장 횟수를 기록
+    
+    private List<PlayerCardInfo> attackSuccessedList = new List<PlayerCardInfo>();
 
+    public List<PlayerCardInfo> AttackSuccessedList => attackSuccessedList;
 
     public void SetSubmittedCardNums()
     {
@@ -52,10 +68,22 @@ public class ResultCalculator
             if (kvp.Value.TryGetComponent(out MyPlayerGameData playerGameData))
             {
                 int submittedCardNum = playerGameData.SubmittedCardNum;
-                playerGameData.IsAttackSuccess = cardCount[submittedCardNum] == 1;
+                bool attackSuccessed = cardCount[submittedCardNum] == 1;
+                playerGameData.IsAttackSuccess = attackSuccessed;
+
+                //공격 성공리스트 등록
+                if (attackSuccessed)
+                {
+                    attackSuccessedList.Add(new PlayerCardInfo(playerGameData.netId, submittedCardNum));
+                }
             }
         }
+
+        //공격 성공리스트 정렬
+        attackSuccessedList.Sort((x, y) => x.CardNumber.CompareTo(y.CardNumber));
     }
+
+
 
     [Server]
     public int GetSumOfAttack()

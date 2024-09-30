@@ -155,30 +155,71 @@ public class MyPlayerGameData : NetworkBehaviour
         return temp;
     }
 
+
+
+    //서버로 쏴주는 방법 말고 서버로 변경 요청하기
+    [Command(requiresAuthority = false)]
+    public void CmdSetSubmittedCardNum(int newCardNum)
+    {
+        submittedCardNum = newCardNum;
+    }
+
+    //서버의 LogicManager에 확인했다고 등록
+    [Command(requiresAuthority = false)]
+    public void CmdSendCheckStageResult()
+    {
+        GameLogicManager.Instance.RegisterResultChecked(netId);
+    }
+
+    //서버로 Hands와 UsedCards 변경 요청
+    [Command(requiresAuthority = false)]
+    public void CmdUpdatePlayerCardInfo()
+    {
+        AddUsedCard(submittedCardNum);
+        RemoveHand(submittedCardNum);
+    }
+
+
+    //서버로 Reward 받아서 Gems 변경 요청(array는 되는걸로 안다)
+    [Command(requiresAuthority = false)]
+    public void CmdGetReward(int[] arrayReward)
+    {
+        gems.Clear();
+        gems.AddRange(arrayReward);
+    }
+
     #region hook
     private void OnHandsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
-        //UI변경
-        //gameSceneUI.뭐시기저시기(netId);
+        Debug.Log($"Player{netId} OnHandsChanged: {oldItem} -> {newItem}");
+        
+        //UI변경..을 SelectCard에서 OnEnable될때 알아서 한다.
 
     }
 
     private void OnGemsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
+        Debug.Log($"Player{netId} OnGemsChanged: {oldItem} -> {newItem}");
+
         //UI변경
         playerInfoUI.UpdatePlayerGemsInfo(netId);
     }
 
     private void OnUsedCardsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
+        Debug.Log($"Player{netId} OnUsedCardsChanged: {oldItem} -> {newItem}");
+
         //UI변경
         playerInfoUI.UpdatePlayerUsedCardsInfo(netId);
     }
 
     private void OnSubmittedCardNumChanged(int oldNum, int newNum)
     {
-        //Panel_SelectCard에서는 Local플레이어를 참조해서 이걸로 변경할 UI없음.
-        //하지만 각 플레이어의 SubmittedCardNum은 모든 클라의 OpenCardUI에서 값을 알아야하므로 SyncVar이어야함.
+        Debug.Log($"Player{netId} SubmittedCardNumChanged: {oldNum} -> {newNum}");
+
+        //UI변경
+        UI_CardPanel cardPanelUI = UIManager.Instance.GetActiveUI(UIPrefab.CardPanelUI).GetComponent<UI_CardPanel>();
+        cardPanelUI.UpdateSelectedCard();
     }
 
     private void OnIsAttackSuccessChanged(bool oldBool, bool newBool)

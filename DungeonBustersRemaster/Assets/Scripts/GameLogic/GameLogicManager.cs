@@ -1,4 +1,5 @@
 using Mirror;
+using Mirror.Examples.CCU;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +26,9 @@ public class GameLogicManager : NetworkBehaviour
 
     [SerializeField] MonsterSpawner monsterSpawner;
 
+    private ResultCalculator calculator = new ResultCalculator();
+
+
     private int gamePlayerCount;
 
 
@@ -43,12 +47,15 @@ public class GameLogicManager : NetworkBehaviour
 
     private int currentMonsterDataId;
 
-
-
     private readonly SyncList<int> bonusGems = new SyncList<int>();
 
     [SyncVar(hook = nameof(OnSumittedPlayerCountChanged))]
     private int submittedPlayerCount;
+
+    [SyncVar(hook = nameof(OnIsWinChanged))]
+    private bool isWin;
+
+    private HashSet<uint> playerResultChecked = new HashSet<uint>();
 
     public List<int> BonusGems => bonusGems.ToList<int>();
 
@@ -76,6 +83,9 @@ public class GameLogicManager : NetworkBehaviour
             OnPhaseChanged(oldPhase, currentPhase);
         }
     }
+
+    public bool IsWin => isWin;
+
     #endregion
 
     #region hook
@@ -119,7 +129,16 @@ public class GameLogicManager : NetworkBehaviour
     private void OnSumittedPlayerCountChanged(int oldCount, int newCount)
     {
         Debug.Log($"SubmittedPlayerCountChanged: {oldCount} -> {newCount}");
-        ServerCheckSubmittedPlayerCount();
+        if (isServer)
+        {
+            ServerCheckSubmittedPlayerCount();
+        }
+    }
+
+    private void OnIsWinChanged(bool oldBool, bool newBool)
+    {
+        Debug.Log($"isWinChanged: {oldBool} -> {newBool}");
+
     }
     #endregion
 
@@ -325,38 +344,118 @@ public class GameLogicManager : NetworkBehaviour
 
     private void ExecuteCardSubmission()
     {
+        InitializeCardPanel();
         //모든 플레이어가 카드를 제출할 때까지 대기한다.
+    }
+
+    [ClientRpc]
+    private void InitializeCardPanel()
+    {
+        UI_CardPanel cardPanelUI = UIManager.Instance.GetActiveUI(UIPrefab.CardPanelUI).GetComponent<UI_CardPanel>();
+        cardPanelUI.UpdateSelectedCard();
     }
 
     [Command(requiresAuthority = false)]
     public void CmdAddSubmittedPlayerCount()
     {
-        submittedPlayerCount++;
+        if(currentPhase == GamePhase.CardSubmission)
+        {
+            submittedPlayerCount++;
+        }
     }
     [Command(requiresAuthority = false)]
     public void CmdSubSubmittedPlayerCount()
     {
-        submittedPlayerCount--;
+        if(currentPhase == GamePhase.CardSubmission && submittedPlayerCount > 0)
+        {
+            submittedPlayerCount--;
+        }
     }
 
+    [Server]
     private void ServerCheckSubmittedPlayerCount()
     {
         if (submittedPlayerCount == gamePlayerCount)
         {
-            RpcSetPhase(GamePhase.ResultCalculation);
+            OnAllPlayerSubmittedCard();
         }
+    }
+
+    [Server]
+    private void OnAllPlayerSubmittedCard()
+    {
+        //플레이어의 UsedCard, Hands변경
+        RpcUpdatePlayersCardInfo();
+
+        //다음 페이즈로
+        RpcSetPhase(GamePhase.ResultCalculation);
+    }
+
+    [ClientRpc]
+    private void RpcUpdatePlayersCardInfo()
+    {
+        MyPlayerGameData playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
+        playerGameData.CmdUpdatePlayerCardInfo();
     }
 
     #endregion
 
+
+    #region ResultCalculation
     private void ExecuteResultCalculation()
     {
         //플레이어가 제출한 카드의 숫자로 현재 스테이지의 몬스터를 쓰러뜨릴수 있는지 계산한다.
         //플레이어의 공격 성공여부를 갱신해준다.
-        ResultCalculator calculator = new ResultCalculator();
         calculator.SetSubmittedCardNums();
         int sumOfAttack = calculator.GetSumOfAttack();
         int monsterHP = MonsterDataManager.Instance.LoadedMonsters[currentMonsterDataId].HP;
+
+        RpcDebugResult(sumOfAttack, monsterHP);
+        
+        if (sumOfAttack >= monsterHP)
+        {
+            isWin = true;
+        }
+        else
+        {
+            isWin = false;
+        }
+
+        //결과 확인 UI 띄워주기
+        //isWin갱신을 기다릴 필요없이 Server에서 결과를 쏴주자.
+        RpcShowResultUI(isWin);
+    }
+
+    [ClientRpc]
+    private void RpcShowResultUI(bool isWin)
+    {
+        UI_WinLose.Show(isWin);
+    }
+
+    //PlayerGameData의 Command를 통해서 호출
+    [Server]
+    public void RegisterResultChecked(uint netId)
+    {
+        playerResultChecked.Add(netId);
+
+        if(playerResultChecked.Count == gamePlayerCount)
+        {
+            OnAllPlayersCheckedResult();
+        }
+    }
+
+    [Server]
+    private void OnAllPlayersCheckedResult()
+    {
+        //UI상으로 모든 플레이어가 결과 확인 버튼을 눌렀으면.
+
+        RpcSetPhase(GamePhase.RewardDistribution);
+    }
+
+
+    [ClientRpc]
+    private void RpcDebugResult(int sumOfAttack, int monsterHP)
+    {
 
         Debug.Log($"sumOfAttack: {sumOfAttack}  HP: {monsterHP}");
         if (sumOfAttack >= monsterHP)
@@ -371,11 +470,60 @@ public class GameLogicManager : NetworkBehaviour
         }
     }
 
+    #endregion
 
 
+    #region RewardDistribution
     private void ExecuteRewardDistribution()
     {
+        RpcDebugAttackSuccessedList();
         //승리후 보석분배, 보너스보석 분배 / 패배후 보석회수가 이루어진다.
+
+        //승리했을 경우
+        if (isWin)
+        {
+            //보석분배
+            //가장 적게 딜한 플레이어부터 Reward를 나눠가짐.
+            //그러려면 공격성공한 플레이어들을 딜 순서로 정렬한 리스트가 있어야 할듯.
+            //그거 Calculator에 있지 않음? 없어서 만듬.
+
+
+
+            for(int i = 0; i < calculator.AttackSuccessedList.Count; i++)
+            {
+                //보상받을 플레이어가 없을 경우 예외처리
+                if (i > calculator.AttackSuccessedList.Count - 1) break;
+
+                PlayerCardInfo playerInfo = calculator.AttackSuccessedList[i];
+                NetworkIdentity identity = NetworkClient.spawned[playerInfo.NetId];
+                MyPlayerGameData playerGameData = identity.GetComponent<MyPlayerGameData>();
+
+                List<int> reward = MonsterDataManager.Instance.LoadedMonsters[currentMonsterDataId].Reward[i];
+
+                Debug.Log("reward: "+ string.Join(", ", reward));
+
+                int[] arrayReward = reward.ToArray();
+
+                playerGameData.CmdGetReward(arrayReward);
+            }
+
+        }
+        //패배했을 경우
+        else
+        {
+
+        }
+
+
+    }
+
+    [ClientRpc]
+    private void RpcDebugAttackSuccessedList()
+    {
+        foreach(PlayerCardInfo player in calculator.AttackSuccessedList)
+        {
+            Debug.Log($"Player{player.NetId}(attackSuccessed) CardNum: {player.CardNumber}");
+        }
     }
 
     [Command(requiresAuthority = false)]
@@ -383,6 +531,8 @@ public class GameLogicManager : NetworkBehaviour
     {
         bonusGems[(int)color] -= subAmount;
     }
+
+    #endregion
 
     private void ExecuteStageEnd()
     {

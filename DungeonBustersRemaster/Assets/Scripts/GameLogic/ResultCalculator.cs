@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-//공격 성공한 카드의 정렬용.
 public class PlayerCardInfo
 {
     public uint NetId { get; set; }
@@ -18,23 +17,27 @@ public class PlayerCardInfo
 
 public class ResultCalculator
 {
-    private Dictionary<uint, int> submittedCardNums = new Dictionary<uint, int>();
-    private Dictionary<int, int> cardCount = new Dictionary<int, int>();    // 각 카드 번호의 등장 횟수를 기록
-    
+    // 계산기에 필요한 것 1, 2, 3
+    private List<PlayerCardInfo> submittedCardNums = new List<PlayerCardInfo>();
+    private Dictionary<int, int> cardCount = new Dictionary<int, int>(); // 각 카드 번호의 등장 횟수를 기록
+
+    // 1. 공격에 성공한 플레이어를 적은 카드 순서대로 정렬한 리스트.
     private List<PlayerCardInfo> attackSuccessedList = new List<PlayerCardInfo>();
 
     public List<PlayerCardInfo> AttackSuccessedList => attackSuccessedList;
 
     public void SetSubmittedCardNums()
     {
-        //cardCount초기화
+        // cardCount 초기화
         cardCount.Clear();
+        submittedCardNums.Clear();  // 새롭게 제출된 카드 리스트 초기화
 
         foreach (var kvp in NetworkClient.spawned)
         {
             if (kvp.Value.TryGetComponent(out MyPlayerGameData playerGameData))
             {
-                submittedCardNums[kvp.Key] = playerGameData.SubmittedCardNum;
+                var playerCardInfo = new PlayerCardInfo(kvp.Key, playerGameData.SubmittedCardNum);
+                submittedCardNums.Add(playerCardInfo);
 
                 // 제출된 카드 번호 등장 횟수 증가
                 if (cardCount.ContainsKey(playerGameData.SubmittedCardNum))
@@ -48,15 +51,22 @@ public class ResultCalculator
             }
         }
 
+
+        // 공격 리스트 정렬
+        submittedCardNums.Sort((x, y) => x.CardNumber.CompareTo(y.CardNumber));
+
         LogSubmittedCardNums();
 
         SetAttackSuccess();
+
+        SetMinAttackPlayer();
     }
+
     public void LogSubmittedCardNums()
     {
         foreach (var entry in submittedCardNums)
         {
-            Debug.Log($"Key: {entry.Key}, Value: {entry.Value}");
+            Debug.Log($"NetId: {entry.NetId}, CardNumber: {entry.CardNumber}");
         }
     }
 
@@ -67,11 +77,12 @@ public class ResultCalculator
         {
             if (kvp.Value.TryGetComponent(out MyPlayerGameData playerGameData))
             {
+                //2. 플레이어의 공격 성공여부 갱신
                 int submittedCardNum = playerGameData.SubmittedCardNum;
                 bool attackSuccessed = cardCount[submittedCardNum] == 1;
                 playerGameData.IsAttackSuccess = attackSuccessed;
 
-                //공격 성공리스트 등록
+                // 공격 성공 리스트 등록
                 if (attackSuccessed)
                 {
                     attackSuccessedList.Add(new PlayerCardInfo(playerGameData.netId, submittedCardNum));
@@ -79,11 +90,32 @@ public class ResultCalculator
             }
         }
 
-        //공격 성공리스트 정렬
+        // 공격 성공 리스트 정렬
         attackSuccessedList.Sort((x, y) => x.CardNumber.CompareTo(y.CardNumber));
     }
 
+    //3. 플레이어의 isMinAttackPlayer 갱신
+    private void SetMinAttackPlayer()
+    {
+        // 가장 작은 카드 번호
+        int minValue = submittedCardNums.Min(cardInfo => cardInfo.CardNumber);
 
+        foreach (var kvp in NetworkClient.spawned)
+        {
+            if (kvp.Value.TryGetComponent(out MyPlayerGameData playerGameData))
+            {
+                int submittedCardNum = playerGameData.SubmittedCardNum;
+                if(submittedCardNum == minValue)
+                {
+                    playerGameData.IsMinAttackPlayer = true;
+                }
+                else
+                {
+                    playerGameData.IsMinAttackPlayer = false;
+                }
+            }
+        }
+    }
 
     [Server]
     public int GetSumOfAttack()
@@ -94,4 +126,27 @@ public class ResultCalculator
 
         return nonDuplicateSum;
     }
+
+    [Server]
+    public List<uint> GetNetIdsWithMinSubmittedCard()
+    {
+        // List가 비어있으면 빈 리스트 반환
+        if (submittedCardNums.Count == 0)
+        {
+            return new List<uint>();
+        }
+
+        // 가장 작은 카드 번호 찾기
+        int minValue = submittedCardNums.Min(cardInfo => cardInfo.CardNumber);
+
+        // 가장 작은 카드 번호를 가진 플레이어들의 NetId 리스트 추출
+        List<uint> minValueKeys = submittedCardNums
+                                  .Where(cardInfo => cardInfo.CardNumber == minValue)
+                                  .Select(cardInfo => cardInfo.NetId)
+                                  .ToList();
+
+        return minValueKeys;
+    }
+
+
 }

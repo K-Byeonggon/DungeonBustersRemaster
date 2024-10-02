@@ -42,6 +42,7 @@ public enum UIPrefab
     PlayerInfoUI,
     GetBonusUI,
     WaitForOtherUI,
+    LoseGemsUI,
 
     SelectCardUI,
     Content_Card,
@@ -206,7 +207,7 @@ public class UIManager : Singleton<UIManager>
             return uiInstance;
         }
 
-        Debug.LogError($"{instanceName} is not Active");
+        Debug.LogWarning($"{instanceName} is not Active");
         return null;
     }
 

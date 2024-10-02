@@ -27,6 +27,8 @@ public class MyPlayerGameData : NetworkBehaviour
     [SyncVar(hook = nameof(OnIsAttackSuccessChanged))]
     private bool isAttackSuccess;
 
+    private bool isMinAttackPlayer;
+
     public List<int> Hands => hands.ToList();
     public List<int> Gems => gems.ToList();
     public List<int> UsedCards => usedCards.ToList();
@@ -47,6 +49,12 @@ public class MyPlayerGameData : NetworkBehaviour
     {
         get => isCardSubmitted;
         set { isCardSubmitted = value; }
+    }
+
+    public bool IsMinAttackPlayer
+    {
+        get => isMinAttackPlayer;
+        set { isMinAttackPlayer = value; }
     }
 
     public override void OnStartClient()
@@ -120,12 +128,7 @@ public class MyPlayerGameData : NetworkBehaviour
     [Server]
     public void AddUsedCard(int card)
     {
-        List<int> tempList = new List<int>(usedCards);
-        tempList.Add(card);
-        tempList.Sort();
-
-        usedCards.Clear();
-        usedCards.AddRange(tempList);
+        usedCards.Add(card);
     }
 
     [Server]
@@ -168,7 +171,7 @@ public class MyPlayerGameData : NetworkBehaviour
     [Command(requiresAuthority = false)]
     public void CmdSendCheckStageResult()
     {
-        GameLogicManager.Instance.RegisterResultChecked(netId);
+        GameLogicManager.Instance.RegisterBattleResultChecked(netId);
     }
 
     //서버로 Hands와 UsedCards 변경 요청
@@ -184,30 +187,102 @@ public class MyPlayerGameData : NetworkBehaviour
     [Command(requiresAuthority = false)]
     public void CmdGetReward(int[] arrayReward)
     {
-        gems.Clear();
-        gems.AddRange(arrayReward);
+        for(int i = 0;  i < arrayReward.Length; i++)
+        {
+            if (arrayReward[i] > 0)
+            {
+                gems[i] += arrayReward[i];
+            }
+        }
+    }
+
+    [Command(requiresAuthority = false)]
+    public void CmdLoseAllGemsByColor(GemColor color)
+    {
+        int loseGemCount = gems[(int)color];
+
+        gems[(int)color] = 0;
+
+        GameLogicManager.Instance.AddBonusGemsToLogicManager(color, loseGemCount);
     }
 
     #region hook
-    private void OnHandsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
+    private void OnHandsChanged(SyncList<int>.Operation op, int index, int newItem)
     {
-        Debug.Log($"Player{netId} OnHandsChanged: {oldItem} -> {newItem}");
-        
+        string message = $"Player{netId} OnHandsChanged: ";
+        switch (op)
+        {
+            case SyncList<int>.Operation.OP_ADD:
+                message += $"Added {newItem} to Hands at index {index}";
+                break;
+            case SyncList<int>.Operation.OP_INSERT:
+                message += $"Inserted {newItem} to Hands at index {index}";
+                break;
+            case SyncList<int>.Operation.OP_SET:
+                message += $"Set Hands at index {index} to {newItem}";
+                break;
+            case SyncList<int>.Operation.OP_REMOVEAT:
+                message += $"Removed {newItem} from Hands at index {index}";
+                break;
+            case SyncList<int>.Operation.OP_CLEAR:
+                message += "Cleared all Hands";
+                break;
+        }
+        Debug.Log(message);
         //UI변경..을 SelectCard에서 OnEnable될때 알아서 한다.
 
     }
 
-    private void OnGemsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
+    private void OnGemsChanged(SyncList<int>.Operation op, int index, int newItem)
     {
-        Debug.Log($"Player{netId} OnGemsChanged: {oldItem} -> {newItem}");
+        string message = $"Player{netId} OnGemsChanged: ";
+        switch (op)
+        {
+            case SyncList<int>.Operation.OP_ADD:
+                message += $"Added {newItem} to Gems at index {index}";
+                break;
+            case SyncList<int>.Operation.OP_INSERT:
+                message += $"Inserted {newItem} to Gems at index {index}";
+                break;
+            case SyncList<int>.Operation.OP_SET:
+                message += $"Set Gems at index {index} to {newItem}";
+                break;
+            case SyncList<int>.Operation.OP_REMOVEAT:
+                message += $"Removed {newItem} from Gems at index {index}";
+                break;
+            case SyncList<int>.Operation.OP_CLEAR:
+                message += "Cleared all Gems";
+                break;
+        }
+        Debug.Log(message);
+
 
         //UI변경
         playerInfoUI.UpdatePlayerGemsInfo(netId);
     }
 
-    private void OnUsedCardsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
+    private void OnUsedCardsChanged(SyncList<int>.Operation op, int index, int newItem)
     {
-        Debug.Log($"Player{netId} OnUsedCardsChanged: {oldItem} -> {newItem}");
+        string message = $"Player{netId} OnUsedCardChanged: ";
+        switch (op)
+        {
+            case SyncList<int>.Operation.OP_ADD:
+                message += $"Added {newItem} to UsedCards at index {index}";
+                break;
+            case SyncList<int>.Operation.OP_INSERT:
+                message += $"Inserted {newItem} to UsedCards at index {index}";
+                break;
+            case SyncList<int>.Operation.OP_SET:
+                message += $"Set UsedCards at index {index} to {newItem}";
+                break;
+            case SyncList<int>.Operation.OP_REMOVEAT:
+                message += $"Removed {newItem} from UsedCards at index {index}";
+                break;
+            case SyncList<int>.Operation.OP_CLEAR:
+                message += "Cleared all UsedCards";
+                break;
+        }
+        Debug.Log(message);
 
         //UI변경
         playerInfoUI.UpdatePlayerUsedCardsInfo(netId);

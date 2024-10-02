@@ -26,7 +26,7 @@ public class GameLogicManager : NetworkBehaviour
 
     [SerializeField] MonsterSpawner monsterSpawner;
 
-    private ResultCalculator calculator = new ResultCalculator();
+    private ResultCalculator calculator;
 
 
     private int gamePlayerCount;
@@ -119,9 +119,17 @@ public class GameLogicManager : NetworkBehaviour
         {
             case SyncList<int>.Operation.OP_ADD:
                 UI_BonusGems.UpdateBonusGems(BonusGems);
+                if(UIManager.Instance.GetActiveUI(UIPrefab.LoseGemsUI) != null)
+                {
+                    UI_LoseGems.UpdateBonusGems(BonusGems);
+                }
                 break;
             case SyncList<int>.Operation.OP_SET:
-                UI_BonusGems.UpdateBonusGems(BonusGems);
+                UI_BonusGems.UpdateBonusGems(BonusGems); 
+                if (UIManager.Instance.GetActiveUI(UIPrefab.LoseGemsUI) != null)
+                {
+                    UI_LoseGems.UpdateBonusGems(BonusGems);
+                }
                 break;
         }
     }
@@ -258,6 +266,7 @@ public class GameLogicManager : NetworkBehaviour
         currentDungeon = 0;
         currentStage = 0;
         currentDungeonMonsterIds.Clear();
+        bonusGems.Clear();
         bonusGems.AddRange(new List<int>() { 0, 0, 0 });
     }
 
@@ -313,6 +322,7 @@ public class GameLogicManager : NetworkBehaviour
     private void ServerExecuteStageStart()
     {
         currentStage++;
+        playerResultChecked.Clear();
         //Deque는 서버에서, 적용은 Rpc로
         currentMonsterDataId = currentDungeonMonsterIds.Dequeue();
         RpcSetCurrentMonsterDataId(currentMonsterDataId);
@@ -404,6 +414,9 @@ public class GameLogicManager : NetworkBehaviour
     #region ResultCalculation
     private void ExecuteResultCalculation()
     {
+        //계산기 초기화
+        calculator = new ResultCalculator();
+
         //플레이어가 제출한 카드의 숫자로 현재 스테이지의 몬스터를 쓰러뜨릴수 있는지 계산한다.
         //플레이어의 공격 성공여부를 갱신해준다.
         calculator.SetSubmittedCardNums();
@@ -434,18 +447,18 @@ public class GameLogicManager : NetworkBehaviour
 
     //PlayerGameData의 Command를 통해서 호출
     [Server]
-    public void RegisterResultChecked(uint netId)
+    public void RegisterBattleResultChecked(uint netId)
     {
         playerResultChecked.Add(netId);
 
         if(playerResultChecked.Count == gamePlayerCount)
         {
-            OnAllPlayersCheckedResult();
+            OnAllPlayersCheckedBattleResult();
         }
     }
 
     [Server]
-    private void OnAllPlayersCheckedResult()
+    private void OnAllPlayersCheckedBattleResult()
     {
         //UI상으로 모든 플레이어가 결과 확인 버튼을 눌렀으면.
 
@@ -476,6 +489,8 @@ public class GameLogicManager : NetworkBehaviour
     #region RewardDistribution
     private void ExecuteRewardDistribution()
     {
+        playerResultChecked.Clear();
+
         RpcDebugAttackSuccessedList();
         //승리후 보석분배, 보너스보석 분배 / 패배후 보석회수가 이루어진다.
 
@@ -511,10 +526,10 @@ public class GameLogicManager : NetworkBehaviour
         //패배했을 경우
         else
         {
+            RpcShowLoseGemsUI();
 
+            //보석잃는 플레이어의 선택이 끝나면 이벤트 처리로 다음 Phase로 넘어감.
         }
-
-
     }
 
     [ClientRpc]
@@ -525,6 +540,77 @@ public class GameLogicManager : NetworkBehaviour
             Debug.Log($"Player{player.NetId}(attackSuccessed) CardNum: {player.CardNumber}");
         }
     }
+
+    #region 패배
+
+    [ClientRpc]
+    private void RpcShowLoseGemsUI()
+    {
+        if (NetworkClient.localPlayer != null && NetworkClient.localPlayer.TryGetComponent(out MyPlayerGameData playerGameData))
+        {
+            // Local의 gameData의 isMinAttackPlayer에 따라 다른 UI를 띄워준다.
+            if (playerGameData.IsMinAttackPlayer)
+            {
+                UIManager.Instance.ShowUI(UIPrefab.LoseGemsUI);
+            }
+            else
+            {
+                playerResultChecked.Add(NetworkClient.localPlayer.netId);
+                UI_WaitForOther.Show("열심히 공격하지 않은 플레이어가 벌을 받고 있습니다..");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("LocalPlayer or MyPlayerGameData not found.");
+        }
+
+    }
+
+    //MyPlayerGameData에서 Cmd로 불러짐.
+    [Server]
+    public void AddBonusGemsToLogicManager(GemColor color, int gemCount)
+    {
+        bonusGems[(int)color] += gemCount;
+    }
+
+    [Server]
+    public void RegisterLoseGemResultChecked(uint netId)
+    {
+        playerResultChecked.Add(netId);
+
+        if (playerResultChecked.Count == gamePlayerCount)
+        {
+            OnAllMinAttackPlayerLoseGems();
+        }
+    }
+
+
+    [Server]
+    private void OnAllMinAttackPlayerLoseGems()
+    {
+        //UI 숨기기
+        RpcHideWaitForOtherUI();
+
+        RpcSetPhase(GamePhase.StageEnd);
+    }
+
+    [ClientRpc]
+    private void RpcHideWaitForOtherUI()
+    {
+        UIManager.Instance.HideUIWithPooling(UIPrefab.LoseGemsUI);
+        UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
+    }
+
+    #endregion
+
+    [Server]
+    private void OnAllPlayerGetBonusGems()
+    {
+        //승리해서 모든 플레이어가 보너스 보석 획득을 마쳤으면.
+
+        RpcSetPhase(GamePhase.StageEnd);
+    }
+
 
     [Command(requiresAuthority = false)]
     public void CmdSubBonusGems(GemColor color, int subAmount)

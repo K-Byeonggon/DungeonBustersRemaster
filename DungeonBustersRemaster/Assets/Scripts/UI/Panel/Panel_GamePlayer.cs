@@ -59,12 +59,16 @@ public class Panel_GamePlayer : MonoBehaviour
 
         GameObject prefabCard = UIManager.Instance.JustGetUIPrefab(UIPrefab.Content_Card);
 
+        //SyncList의 정렬은 동기화때문에 꺼려지기 때문에 UI에서 정렬.
+        List<int> usedCards = playerGameData.UsedCards;
+        usedCards.Sort();
+
         //PlayerColor에 맞는 카드 오브젝트를 UsedCard의 숫자에 맞게 생성
-        for (int i = 0; i < playerGameData.UsedCards.Count; i++)
+        for (int i = 0; i < usedCards.Count; i++)
         {
             GameObject gObj = Instantiate(prefabCard, Layout_PlayerUsedCards);
             Content_Card usedCard = gObj.GetComponent<Content_Card>();
-            usedCard.SetCardNum(playerGameData.UsedCards[i]);
+            usedCard.SetCardNum(usedCards[i]);
             usedCard.SetCardImg(playerData.PlayerColor);
         }
     }

@@ -20,6 +20,9 @@ public class UI_BonusGems : MonoBehaviour
     public static void UpdateBonusGems(List<int> newBonusGems)
     {
         UI_BonusGems bonusUI = UIManager.Instance.GetActiveUI(UIPrefab.BonusGemsUI).GetComponent<UI_BonusGems>();
-        bonusUI.SetBonusInfo(newBonusGems);
+        if(bonusUI != null)
+        {
+            bonusUI.SetBonusInfo(newBonusGems);
+        }
     }
 }

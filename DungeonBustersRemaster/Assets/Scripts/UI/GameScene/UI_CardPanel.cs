@@ -20,13 +20,21 @@ public class UI_CardPanel : MonoBehaviour
     {
         Btn_SelectCard.onClick.AddListener(OnClick_SelectCard);
         Btn_SubmitCard.onClick.AddListener(OnClick_SubmitCard);
-
+        Initialize();
     }
 
     private void OnDisable()
     {
         Btn_SelectCard.onClick.RemoveListener(OnClick_SelectCard);
         Btn_SubmitCard.onClick.RemoveListener(OnClick_SubmitCard);
+    }
+
+    public void Initialize()
+    {
+        isSubmit = true;
+        Text_SubmitCard.text = "카드 제출";
+        Img_Submitted.gameObject.SetActive(false);
+        Text_CardNum.text = string.Empty;
     }
 
     private void OnClick_SelectCard()

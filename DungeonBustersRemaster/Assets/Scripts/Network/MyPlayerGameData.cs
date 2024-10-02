@@ -29,6 +29,8 @@ public class MyPlayerGameData : NetworkBehaviour
 
     private bool isMinAttackPlayer;
 
+    private int currentStageRank;
+
     public List<int> Hands => hands.ToList();
     public List<int> Gems => gems.ToList();
     public List<int> UsedCards => usedCards.ToList();
@@ -55,6 +57,12 @@ public class MyPlayerGameData : NetworkBehaviour
     {
         get => isMinAttackPlayer;
         set { isMinAttackPlayer = value; }
+    }
+
+    public int CurrentStageRank
+    {
+        get => currentStageRank;
+        set { currentStageRank = value; }
     }
 
     public override void OnStartClient()

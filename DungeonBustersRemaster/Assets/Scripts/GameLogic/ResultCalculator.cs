@@ -1,5 +1,6 @@
 using Mirror;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
@@ -20,11 +21,14 @@ public class ResultCalculator
     // 계산기에 필요한 것 1, 2, 3
     private List<PlayerCardInfo> submittedCardNums = new List<PlayerCardInfo>();
     private Dictionary<int, int> cardCount = new Dictionary<int, int>(); // 각 카드 번호의 등장 횟수를 기록
+    private Queue<uint> rewardOrder = new Queue<uint>();
 
     // 1. 공격에 성공한 플레이어를 적은 카드 순서대로 정렬한 리스트.
     private List<PlayerCardInfo> attackSuccessedList = new List<PlayerCardInfo>();
 
     public List<PlayerCardInfo> AttackSuccessedList => attackSuccessedList;
+
+    public Queue<uint> RewardOrder => rewardOrder;
 
     public void SetSubmittedCardNums()
     {
@@ -59,6 +63,8 @@ public class ResultCalculator
 
         SetAttackSuccess();
 
+        SetRewardOrder();
+
         SetMinAttackPlayer();
     }
 
@@ -92,6 +98,34 @@ public class ResultCalculator
 
         // 공격 성공 리스트 정렬
         attackSuccessedList.Sort((x, y) => x.CardNumber.CompareTo(y.CardNumber));
+    }
+
+    //정렬방식: 공격 성공리스트가 순서대로 넣어짐. 공격 실패한 것들은 그 뒤로 넣어짐.
+    private void SetRewardOrder()
+    {
+        //초기화
+        rewardOrder.Clear();
+
+        //공격 성공 플레이어 추가
+        foreach(var info in attackSuccessedList)
+        {
+            rewardOrder.Enqueue(info.NetId);
+        }
+
+        // 나머지 플레이어 추가
+        // 공격 성공한 플레이어들의 NetId를 HashSet으로 변환 (빠른 검색을 위해)
+        HashSet<uint> successedNetIds = new HashSet<uint>(attackSuccessedList.Select(info => info.NetId));
+
+        // submittedCardNums에서 attackSuccessedList에 없는 나머지 플레이어들의 NetId를 필터링
+        List<uint> remainingPlayers = submittedCardNums
+            .Where(cardInfo => !successedNetIds.Contains(cardInfo.NetId)) // 공격에 성공하지 않은 플레이어
+            .Select(cardInfo => cardInfo.NetId)  // 그들의 NetId를 추출
+            .ToList();
+        
+        foreach (var netId in remainingPlayers)
+        {
+            rewardOrder.Enqueue(netId);
+        }
     }
 
     //3. 플레이어의 isMinAttackPlayer 갱신

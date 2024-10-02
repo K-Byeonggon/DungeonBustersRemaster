@@ -305,13 +305,10 @@ public class GameLogicManager : NetworkBehaviour
 
         //다음 몬스터를 향해 달려가는 애니메이션이 재생된다.
 
-
         ServerExecuteStageStart();
-
 
         RpcExecuteStageStart();
 
-        //SetPhase(GamePhase.CardSubmission);
         if (isServer)
         {
             RpcSetPhase(GamePhase.CardSubmission);
@@ -322,7 +319,10 @@ public class GameLogicManager : NetworkBehaviour
     private void ServerExecuteStageStart()
     {
         currentStage++;
+        submittedPlayerCount = 0;
         playerResultChecked.Clear();
+        RpcInitializePlayerSubmittedCard();
+
         //Deque는 서버에서, 적용은 Rpc로
         currentMonsterDataId = currentDungeonMonsterIds.Dequeue();
         RpcSetCurrentMonsterDataId(currentMonsterDataId);
@@ -336,6 +336,17 @@ public class GameLogicManager : NetworkBehaviour
         //몬스터 스폰
         monsterSpawner.SpawnMonster(serverMonsterDataId);
     }
+
+    [ClientRpc]
+    private void RpcInitializePlayerSubmittedCard()
+    {
+        MyPlayerGameData playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
+        playerGameData.CmdSetSubmittedCardNum(0);
+
+        UI_CardPanel cardPanelUI = UIManager.Instance.GetActiveUI(UIPrefab.CardPanelUI).GetComponent<UI_CardPanel>();
+        cardPanelUI.Initialize();
+    }
+
 
     [ClientRpc]
     private void RpcExecuteStageStart()
@@ -497,23 +508,19 @@ public class GameLogicManager : NetworkBehaviour
         //승리했을 경우
         if (isWin)
         {
-            //보석분배
-            //가장 적게 딜한 플레이어부터 Reward를 나눠가짐.
-            //그러려면 공격성공한 플레이어들을 딜 순서로 정렬한 리스트가 있어야 할듯.
-            //그거 Calculator에 있지 않음? 없어서 만듬.
+            List<List<int>> rewards = MonsterDataManager.Instance.LoadedMonsters[currentMonsterDataId].Reward;
 
-
-
-            for(int i = 0; i < calculator.AttackSuccessedList.Count; i++)
+            for(int i = 0; i < rewards.Count; i++)
             {
                 //보상받을 플레이어가 없을 경우 예외처리
                 if (i > calculator.AttackSuccessedList.Count - 1) break;
 
+                //AttackSuccessedList는 적은 카드를 낸 순으로 정렬되어있다.
                 PlayerCardInfo playerInfo = calculator.AttackSuccessedList[i];
                 NetworkIdentity identity = NetworkClient.spawned[playerInfo.NetId];
                 MyPlayerGameData playerGameData = identity.GetComponent<MyPlayerGameData>();
 
-                List<int> reward = MonsterDataManager.Instance.LoadedMonsters[currentMonsterDataId].Reward[i];
+                List<int> reward = rewards[i];
 
                 Debug.Log("reward: "+ string.Join(", ", reward));
 
@@ -521,6 +528,8 @@ public class GameLogicManager : NetworkBehaviour
 
                 playerGameData.CmdGetReward(arrayReward);
             }
+
+
 
         }
         //패배했을 경우
@@ -541,7 +550,7 @@ public class GameLogicManager : NetworkBehaviour
         }
     }
 
-    #region 패배
+    #region 패배(RewardDistribution)
 
     [ClientRpc]
     private void RpcShowLoseGemsUI()
@@ -603,6 +612,27 @@ public class GameLogicManager : NetworkBehaviour
 
     #endregion
 
+    #region 승리(RewardDistribution)
+
+    [ClientRpc]
+    private void RpcShowGetRewardUI(int monsterDataId, int rewardIndex)
+    {
+        //아이거 머리아프네
+        //효율적인 방법이 있을거 같은데..
+    }
+
+
+    [Server]
+    private void OnAllPlayerGetReward()
+    {
+        GetBonusGems();
+    }
+
+    private void GetBonusGems()
+    {
+
+    }
+
     [Server]
     private void OnAllPlayerGetBonusGems()
     {
@@ -617,6 +647,7 @@ public class GameLogicManager : NetworkBehaviour
     {
         bonusGems[(int)color] -= subAmount;
     }
+    #endregion
 
     #endregion
 

@@ -709,10 +709,6 @@ public class GameLogicManager : NetworkBehaviour
         }
     }
 
-    private IEnumerator TestCoroutine()
-    {
-        yield return new WaitForSeconds(2f);
-    }
 
     [Command(requiresAuthority = false)]
     public void CmdOnClickPanelBonusGem(GemColor color, int subAmount)
@@ -771,7 +767,7 @@ public class GameLogicManager : NetworkBehaviour
     private void ExecuteDungeonEnd()
     {
         //던전 3개 다돌았으면 SetPhase(GameEnd) 아니면 던전 번호 올려서 SetPhase(DungeonStart)로
-        if (currentDungeon < 3)
+        if (currentDungeon < 1) //임시로 1
         {
             RpcSetPhase(GamePhase.DungeonStart);
         }
@@ -784,6 +780,7 @@ public class GameLogicManager : NetworkBehaviour
     private void ExecuteGameEnd()
     {
         //게임결과 보여주고 로비로 돌아갈 수 있는 창을 띄우면 될듯?
+
     }
 
     #endregion

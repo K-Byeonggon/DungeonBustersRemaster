@@ -67,10 +67,10 @@ public class UI_PlayerInfo : MonoBehaviour
             PlayerPanels[netId] = gamePlayer;
         }
 
-        InitializePlayerInfo(netId);
+        UpdatePlayerInfo(netId);
     }
 
-    private void InitializePlayerInfo(uint netId)
+    private void UpdatePlayerInfo(uint netId)
     {
         UpdatePlayerNickname(netId);
         UpdatePlayerColor(netId);
@@ -118,6 +118,14 @@ public class UI_PlayerInfo : MonoBehaviour
         if (PlayerPanels.ContainsKey(netId))
         {
             PlayerPanels[netId].UpdateUsedCards();
+        }
+    }
+
+    public void ForceUpdatePlayerUsedCardsInfo(List<int> tempUsedCards, uint netId)
+    {
+        if(PlayerPanels.ContainsKey(netId))
+        {
+            PlayerPanels[netId].ForceUpdateUsedCards(tempUsedCards);
         }
     }
 

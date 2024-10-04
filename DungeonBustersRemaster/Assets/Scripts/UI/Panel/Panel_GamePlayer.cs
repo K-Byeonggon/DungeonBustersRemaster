@@ -51,6 +51,7 @@ public class Panel_GamePlayer : MonoBehaviour
     //여기가 진짜
     public void UpdateUsedCards()
     {
+
         //초기화. 최적화 여지가 있긴함.
         foreach(Transform child in Layout_PlayerUsedCards)
         {
@@ -63,12 +64,38 @@ public class Panel_GamePlayer : MonoBehaviour
         List<int> usedCards = playerGameData.UsedCards;
         usedCards.Sort();
 
+        foreach(int card in usedCards)
+        {
+            Debug.Log($"<color=red> UsedCard {card} </color>");
+        }
+
         //PlayerColor에 맞는 카드 오브젝트를 UsedCard의 숫자에 맞게 생성
         for (int i = 0; i < usedCards.Count; i++)
         {
             GameObject gObj = Instantiate(prefabCard, Layout_PlayerUsedCards);
             Content_Card usedCard = gObj.GetComponent<Content_Card>();
             usedCard.SetCardNum(usedCards[i]);
+            usedCard.SetCardImg(playerData.PlayerColor);
+        }
+    }
+
+    public void ForceUpdateUsedCards(List<int> tempUsedCards)
+    {
+        Debug.Log("<color=red>ForceUpdateUsedCards</color>");
+
+        //초기화. 최적화 여지가 있긴함.
+        foreach (Transform child in Layout_PlayerUsedCards)
+        {
+            Destroy(child.gameObject);
+        }
+
+        GameObject prefabCard = UIManager.Instance.JustGetUIPrefab(UIPrefab.Content_Card);
+
+        for (int i = 0; i < tempUsedCards.Count; i++)
+        {
+            GameObject gObj = Instantiate(prefabCard, Layout_PlayerUsedCards);
+            Content_Card usedCard = gObj.GetComponent<Content_Card>();
+            usedCard.SetCardNum(tempUsedCards[i]);
             usedCard.SetCardImg(playerData.PlayerColor);
         }
     }

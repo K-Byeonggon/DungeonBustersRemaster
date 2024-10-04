@@ -48,6 +48,11 @@ public class UI_GetReward : MonoBehaviour
 
     private void SetLayoutReward(List<int> reward, int currentRank)
     {
+        foreach(Transform gem in Layout_Reward)
+        {
+            Destroy(gem.gameObject);
+        }
+
         Text_Message.text = $"{currentRank + 1}번째로 적은 피해를 주었습니다. \n{currentRank + 1}번째 보상을 획득합니다.";
 
         currentReward = reward;

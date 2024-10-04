@@ -32,12 +32,10 @@ public class Panel_BonusGem : MonoBehaviour
 
     private void OnClick_BonusGem()
     {
-        //로컬플레이어에 Gem 추가해주고,
-        //BonusGem을 감소시킴. 아직 BonuGem이 남아있으면 대기화면을 띄운다.
-        //야 근데 플레이어의 Gem을 바꾸는거는 서버에서만 할 수 있는데? Command넣어야할듯
+        //로컬플레이어에 Gem 추가해주고, BonusGem을 감소시킴. 아직 BonuGem이 남아있으면 대기화면을 띄운다.
+        //ㄴ이런 일을 하는 메서드가 UI_GetBonus에서 SetClickAction으로 구독됨.
 
-        //여기서 GameLogicManager의 bonusGems를 건드릴 수 있나?
-        //구버전은 NewGameManager가 싱글톤이라서 가능했음
+        UIManager.Instance.HideUIWithPooling(UIPrefab.GetBonusUI);
 
         onClickAction?.Invoke(bonusColor, 1);
     }
@@ -57,7 +55,7 @@ public class Panel_BonusGem : MonoBehaviour
 
     public void SetClickAction(Action<GemColor, int> onClickAction)
     {
-        this.onClickAction = onClickAction;
+        this.onClickAction += onClickAction;
     }
 
 }

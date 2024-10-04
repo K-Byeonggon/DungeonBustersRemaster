@@ -16,6 +16,8 @@ public class UI_CardPanel : MonoBehaviour
 
     private bool isSubmit = true;
 
+    MyPlayerGameData playerGameData;
+
     private void OnEnable()
     {
         Btn_SelectCard.onClick.AddListener(OnClick_SelectCard);
@@ -31,6 +33,8 @@ public class UI_CardPanel : MonoBehaviour
 
     public void Initialize()
     {
+        playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
+
         isSubmit = true;
         Text_SubmitCard.text = "카드 제출";
         Img_Submitted.gameObject.SetActive(false);
@@ -44,8 +48,13 @@ public class UI_CardPanel : MonoBehaviour
 
     private void OnClick_SubmitCard()
     {
-        //어떻게 제출 여부를 GameLogicManager에 알리나?
-        //그냥 GameLogicManager에 SubmittedPlayerNum을 증가시키고 플레이어 수와 알맞게 되면 진행하는게?
+        //카드가 비어있으면 제출 불가능.
+        if (playerGameData.SubmittedCardNum == 0)
+        {
+            return;
+        }
+
+
         if (isSubmit)
         {
             SubmitCard();
@@ -77,7 +86,7 @@ public class UI_CardPanel : MonoBehaviour
     public void UpdateSelectedCard()
     {
         MyPlayer playerData = NetworkClient.localPlayer.GetComponent<MyPlayer>();
-        MyPlayerGameData playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
+        playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
 
         Img_SelectedCard.sprite = SpriteManager.Instance.GetCardSprite(playerData.PlayerColor);
         Text_CardNum.text = playerGameData.SubmittedCardNum != 0 ? playerGameData.SubmittedCardNum.ToString() : string.Empty;

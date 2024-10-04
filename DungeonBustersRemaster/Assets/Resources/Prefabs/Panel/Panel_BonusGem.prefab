@@ -218,6 +218,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6851473271017951779}
+  - component: {fileID: 4271717797622219477}
   m_Layer: 5
   m_Name: Panel_BonusGem
   m_TagString: Untagged
@@ -245,6 +246,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &4271717797622219477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3508766612236475892}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74594ecacefb575459d56fa8773c70d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Btn_BonusGem: {fileID: 8084026920664117893}
+  Img_Gem: {fileID: 3421439912336589336}
+  Text_GemCount: {fileID: 7284236880187875658}
 --- !u!1 &4127677086750549923
 GameObject:
   m_ObjectHideFlags: 0

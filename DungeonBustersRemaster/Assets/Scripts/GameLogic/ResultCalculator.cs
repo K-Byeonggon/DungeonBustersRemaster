@@ -1,5 +1,7 @@
 using Mirror;
+using Org.BouncyCastle.Ocsp;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using UnityEngine;
@@ -122,11 +124,15 @@ public class ResultCalculator
         // 가장 작은 카드 번호
         int minValue = submittedCardNums.Min(cardInfo => cardInfo.CardNumber);
 
+        Debug.Log($"<color=red> minValue: {minValue}</color>");
         foreach (var kvp in NetworkClient.spawned)
         {
             if (kvp.Value.TryGetComponent(out MyPlayerGameData playerGameData))
             {
                 int submittedCardNum = playerGameData.SubmittedCardNum;
+
+                Debug.Log($"<color=red> Player{playerGameData.netId} submittedCardNum: {submittedCardNum}</color>");
+
                 if(submittedCardNum == minValue)
                 {
                     playerGameData.IsMinAttackPlayer = true;

@@ -1,3 +1,4 @@
+using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,16 +6,17 @@ using UnityEngine;
 public class UI_GetBonus : MonoBehaviour
 {
     [SerializeField] Transform Layout_BonusGems;
+    [SerializeField] GameObject bonusPrefab;
 
-    public void SetLayoutBonusGems(GameLogicManager manager)
+
+    public void SetLayoutBonusGems(List<int> bonusGems)
     {
         foreach(Transform child in Layout_BonusGems)
         {
             Destroy(child.gameObject);
         }
 
-        List<int> bonusGems = manager.BonusGems;
-        GameObject bonusPrefab = null;
+        MyPlayerGameData playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
         
         for (int index = 0; index < bonusGems.Count; index++)
         {
@@ -24,18 +26,19 @@ public class UI_GetBonus : MonoBehaviour
             Panel_BonusGem bonusGem = gObj.GetComponent<Panel_BonusGem>();
             bonusGem.SetBonusColor((GemColor)index);
             bonusGem.SetBonusCount(bonusGems[index]);
-            bonusGem.SetClickAction(manager.CmdSubBonusGems);
+            bonusGem.SetClickAction(playerGameData.CmdAddGemsByColor);
+            bonusGem.SetClickAction(GameLogicManager.Instance.CmdOnClickPanelBonusGem);
         }
 
     }
 
-    public static void UpdateGetBonusGems(GameLogicManager manager)
-    {
-        
-        UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
 
+    public static void Show(int[] arrayBonus)
+    {
+        List<int> bonusGems = new List<int>(arrayBonus);
+        Debug.Log("<color=red> UI_GetBonus.Show </color>");
+        UIManager.Instance.ShowUI(UIPrefab.GetBonusUI);
         UI_GetBonus getBonusUI = UIManager.Instance.GetActiveUI(UIPrefab.GetBonusUI).GetComponent<UI_GetBonus>();
-        getBonusUI.SetLayoutBonusGems(manager);
-        //manager의 Cmd메서드를 Layout의 컨텐츠의 Action에 붙이기. Server의 GameLogicManager의 bonesGems 수정하
+        getBonusUI.SetLayoutBonusGems(bonusGems);
     }
 }

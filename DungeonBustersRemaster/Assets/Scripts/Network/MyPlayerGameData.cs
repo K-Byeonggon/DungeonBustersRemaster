@@ -28,6 +28,7 @@ public class MyPlayerGameData : NetworkBehaviour
     [SyncVar(hook = nameof(OnIsAttackSuccessChanged))]
     private bool isAttackSuccess;
 
+    [SyncVar(hook = nameof(OnIsMinAttackPlayerChanged))]
     private bool isMinAttackPlayer;
 
     [SyncVar(hook = nameof(OnCurrentStageRankChanged))]
@@ -109,7 +110,9 @@ public class MyPlayerGameData : NetworkBehaviour
     [Server]
     public void InitializeUsedCards()
     {
+        //Clear를 사용하니까 바로 UI에 반영해야되는 UsedCards는 동기화 지연 문제가 발생한다.
         usedCards.Clear();
+
     }
 
     [Server]
@@ -141,34 +144,13 @@ public class MyPlayerGameData : NetworkBehaviour
         usedCards.Add(card);
     }
 
-    [Server]
-    public void SetGems(List<int> newGems)
+
+    //DungeonStart에서 초기화하도록
+    [Command(requiresAuthority = false)]
+    public void CmdInitializeCardSettings()
     {
-        gems.Clear();
-        gems.AddRange(newGems);
+        InitialCardSettings();
     }
-
-    [Server]
-    public void AddGem(GemColor color, int amount)
-    {
-        if(amount < 0)
-        {
-            Debug.LogError($"Add amount < 0");
-            return;
-        }
-
-        gems[(int)color] += amount;
-    }
-
-    [Server]
-    public int LoseAllGemByColor(GemColor color)
-    {
-        int temp = gems[(int)color];
-        gems[(int)color] = 0;
-        return temp;
-    }
-
-
 
     //서버로 쏴주는 방법 말고 서버로 변경 요청하기
     [Command(requiresAuthority = false)]
@@ -177,12 +159,6 @@ public class MyPlayerGameData : NetworkBehaviour
         submittedCardNum = newCardNum;
     }
 
-    //서버의 LogicManager에 확인했다고 등록
-    [Command(requiresAuthority = false)]
-    public void CmdSendCheckStageResult()
-    {
-        GameLogicManager.Instance.RegisterBattleResultChecked(netId);
-    }
 
     //서버로 Hands와 UsedCards 변경 요청
     [Command(requiresAuthority = false)]
@@ -227,6 +203,16 @@ public class MyPlayerGameData : NetworkBehaviour
     public void CmdUpdateCurrentStageRank(int newRank)
     {
         currentStageRank = newRank;
+    }
+
+    [Command(requiresAuthority = false)]
+    public void CmdAddGemsByColor(GemColor color, int count)
+    {
+        if (count < 0) return;
+
+        gems[(int)color] += count;
+
+        //LogicManager에 얻은만큼 빼는 것은 UI변경이 바로되어야해서 따로작성
     }
 
     #region hook
@@ -291,25 +277,32 @@ public class MyPlayerGameData : NetworkBehaviour
         {
             case SyncList<int>.Operation.OP_ADD:
                 message += $"Added {newItem} to UsedCards at index {index}";
+                playerInfoUI.UpdatePlayerUsedCardsInfo(netId);
                 break;
             case SyncList<int>.Operation.OP_INSERT:
                 message += $"Inserted {newItem} to UsedCards at index {index}";
+                playerInfoUI.UpdatePlayerUsedCardsInfo(netId);
                 break;
             case SyncList<int>.Operation.OP_SET:
                 message += $"Set UsedCards at index {index} to {newItem}";
+                playerInfoUI.UpdatePlayerUsedCardsInfo(netId);
                 break;
             case SyncList<int>.Operation.OP_REMOVEAT:
                 message += $"Removed {newItem} from UsedCards at index {index}";
+                playerInfoUI.UpdatePlayerUsedCardsInfo(netId);
                 break;
+                
             case SyncList<int>.Operation.OP_CLEAR:
                 message += "Cleared all UsedCards";
+                //.Clear는 동기화가 느려서 강제 UI업데이트를 부른다.
+                playerInfoUI.ForceUpdatePlayerUsedCardsInfo(new List<int>(), netId);
                 break;
         }
         Debug.Log(message);
 
         //UI변경
-        playerInfoUI.UpdatePlayerUsedCardsInfo(netId);
     }
+
 
     private void OnSubmittedCardNumChanged(int oldNum, int newNum)
     {
@@ -333,6 +326,11 @@ public class MyPlayerGameData : NetworkBehaviour
     private void OnCurrentStageRankChanged(int oldRank, int newRank)
     {
         Debug.Log($"Player{netId} CurrentStageRankChanged: {oldRank} -> {newRank}");
+
+    }
+
+    private void OnIsMinAttackPlayerChanged(bool oldBool, bool newBool)
+    {
 
     }
     #endregion

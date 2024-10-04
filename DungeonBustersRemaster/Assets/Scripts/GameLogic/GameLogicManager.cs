@@ -1,8 +1,10 @@
 using Mirror;
 using Mirror.Examples.CCU;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 public enum GamePhase
@@ -14,6 +16,7 @@ public enum GamePhase
     CardSubmission,
     ResultCalculation,
     RewardDistribution,
+    BonusDistribution,
     StageEnd,
     DungeonEnd,
     GameEnd
@@ -63,7 +66,7 @@ public class GameLogicManager : NetworkBehaviour
     [SyncVar(hook = nameof(OnIsWinChanged))]
     private bool isWin;
 
-    private HashSet<uint> playerResultChecked = new HashSet<uint>();
+    private int currentBonusPlayerIndex;
 
     //플레이어가 확인했는지 여부를 저장함. 어떤 단계를 확인했는지 저장해서 다른 동작을 함.
     private Dictionary<uint, ConfirmPhase> playerConfirmations = new Dictionary<uint, ConfirmPhase>();
@@ -126,6 +129,8 @@ public class GameLogicManager : NetworkBehaviour
 
     private void OnBonusGemsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
+
+        Debug.Log("<color=red> OnBonusGemsChanged </color>");
         switch (op)
         {
             case SyncList<int>.Operation.OP_ADD:
@@ -140,6 +145,10 @@ public class GameLogicManager : NetworkBehaviour
                 if (UIManager.Instance.GetActiveUI(UIPrefab.LoseGemsUI) != null)
                 {
                     UI_LoseGems.UpdateBonusGems(BonusGems);
+                }
+                if (UIManager.Instance.GetActiveUI(UIPrefab.GetBonusUI) != null)
+                {
+
                 }
                 break;
         }
@@ -205,6 +214,7 @@ public class GameLogicManager : NetworkBehaviour
             { GamePhase.CardSubmission, ExecuteCardSubmission },
             { GamePhase.ResultCalculation, ExecuteResultCalculation },
             { GamePhase.RewardDistribution, ExecuteRewardDistribution },
+            { GamePhase.BonusDistribution, ExecuteBonusDistribution },
             { GamePhase.StageEnd, ExecuteStageEnd },
             { GamePhase.DungeonEnd, ExecuteDungeonEnd },
             { GamePhase.GameEnd, ExecuteGameEnd }
@@ -336,7 +346,6 @@ public class GameLogicManager : NetworkBehaviour
     {
         //서버에서만 수행되는 초기화 과정
         currentDungeon = 0;
-        currentStage = 0;
         currentDungeonMonsterIds.Clear();
         bonusGems.Clear();
         bonusGems.AddRange(new List<int>() { 0, 0, 0 });
@@ -361,10 +370,20 @@ public class GameLogicManager : NetworkBehaviour
     [Server]
     private void ServerExecuteDungeonStart()
     {
+        currentStage = 0;
         currentDungeon++;
+        RpcRequestInitializeCardSettings();
+
         //이번 던전의 몬스터 큐 뽑기(4마리의 몬스터)
         List<int> monsterIdList = MonsterDataManager.Instance.GetRandomMonsterDataIdsByDungeon(currentDungeon);
         currentDungeonMonsterIds = new Queue<int>(monsterIdList);
+    }
+
+    [ClientRpc]
+    private void RpcRequestInitializeCardSettings()
+    {
+        MyPlayerGameData playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
+        playerGameData.CmdInitializeCardSettings();
     }
 
     #endregion
@@ -527,17 +546,6 @@ public class GameLogicManager : NetworkBehaviour
         UI_WinLose.Show(isWin);
     }
 
-    //PlayerGameData의 Command를 통해서 호출
-    [Server]
-    public void RegisterBattleResultChecked(uint netId)
-    {
-        playerResultChecked.Add(netId);
-
-        if(playerResultChecked.Count == gamePlayerCount)
-        {
-            OnAllPlayersCheckedBattleResult();
-        }
-    }
 
     [Server]
     private void OnAllPlayersCheckedBattleResult()
@@ -571,8 +579,6 @@ public class GameLogicManager : NetworkBehaviour
     #region RewardDistribution
     private void ExecuteRewardDistribution()
     {
-
-        
         ServerDebugAttackSuccessedList();
         
         //승리후 보석분배, 보너스보석 분배 / 패배후 보석회수가 이루어진다.
@@ -616,7 +622,6 @@ public class GameLogicManager : NetworkBehaviour
             }
             else
             {
-                //playerResultChecked.Add(NetworkClient.localPlayer.netId);
                 CmdCheckConfirm(NetworkClient.localPlayer.netId, ConfirmPhase.LoseGemsResult);
                 UI_WaitForOther.Show("열심히 공격하지 않은 플레이어가 벌을 받고 있습니다..");
             }
@@ -657,38 +662,98 @@ public class GameLogicManager : NetworkBehaviour
     [Server]
     private void OnAllPlayerGetReward()
     {
-        GetBonusGems();
+        RpcSetPhase(GamePhase.BonusDistribution);
+    }
+
+
+    #endregion
+
+    #endregion
+
+    #region Bonus Distribution
+
+    private void ExecuteBonusDistribution()
+    {
+        //보너스 없으면 다음 Phase로
+        if(bonusGems.All(gem => gem == 0))
+        {
+            RpcSetPhase(GamePhase.StageEnd);
+            return;
+        }
+
+        //보너스 클릭해서 가져갈 수 있는 UI 띄워주기
+        currentBonusPlayerIndex = 0;
+        uint currentGetBonusPlayerNetId = calculator.AttackSuccessedList[currentBonusPlayerIndex].NetId;
+        int[] arrayBonus = BonusGems.ToArray();
+
+
+        RpcShowGetBonusUI(arrayBonus, currentGetBonusPlayerNetId);
+
+        //보너스 전부 떨어지면 OnAllPlayerGetBonus 실행.
+
     }
 
     [ClientRpc]
-    private void RpcHideGetRewardUI()
+    private void RpcShowGetBonusUI(int[] arrayBonus, uint currentGetBonusPlayerNetId)
     {
-        UIManager.Instance.HideUIWithPooling(UIPrefab.GetRewardUI);
-        UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
+        if(NetworkClient.localPlayer.netId == currentGetBonusPlayerNetId)
+        {
+            UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
+
+            UI_GetBonus.Show(arrayBonus);
+            
+        }
+        else
+        {
+            UI_WaitForOther.Show("다른 플레이어의 보너스 선택을 기다리는 중입니다..");
+        }
     }
 
-    private void GetBonusGems()
+    private IEnumerator TestCoroutine()
     {
+        yield return new WaitForSeconds(2f);
+    }
 
+    [Command(requiresAuthority = false)]
+    public void CmdOnClickPanelBonusGem(GemColor color, int subAmount)
+    {
+        List<int> tempBonusGems = new List<int>(BonusGems);
+
+        //이건 Sync라서 딜레이가 있음.
+        bonusGems[(int)color] -= subAmount;
+
+        //UI표시에는 tempBonusGems를 사용할 것임.
+        tempBonusGems[(int)color] -= subAmount;
+        int[] arrayBonus = tempBonusGems.ToArray();
+
+        foreach (int gem in bonusGems)
+        {
+            if (gem != 0)
+            {
+                //다음 사람 보너스 선택하는 UI띄워주기
+                currentBonusPlayerIndex = (currentBonusPlayerIndex + 1) % calculator.AttackSuccessedList.Count;
+                uint currentGetBonusPlayerNetId = calculator.AttackSuccessedList[currentBonusPlayerIndex].NetId;
+
+                RpcShowGetBonusUI(arrayBonus, currentGetBonusPlayerNetId);
+                return;
+            }
+        }
+
+        //보너스가 전부 소진되면
+        OnAllPlayerGetBonus();
     }
 
     [Server]
-    private void OnAllPlayerGetBonusGems()
+    private void OnAllPlayerGetBonus()
     {
-        //승리해서 모든 플레이어가 보너스 보석 획득을 마쳤으면.
+        RpcHideWaitForOthersUI();
 
         RpcSetPhase(GamePhase.StageEnd);
     }
 
 
-    [Command(requiresAuthority = false)]
-    public void CmdSubBonusGems(GemColor color, int subAmount)
-    {
-        bonusGems[(int)color] -= subAmount;
-    }
     #endregion
 
-    #endregion
 
     private void ExecuteStageEnd()
     {

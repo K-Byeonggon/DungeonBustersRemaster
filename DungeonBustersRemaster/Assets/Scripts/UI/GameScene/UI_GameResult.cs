@@ -1,3 +1,4 @@
+using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,8 +24,17 @@ public class UI_GameResult : MonoBehaviour
         Btn_Confirm.onClick.RemoveListener(OnClick_Confirm);
     }
 
-    //애를 어디서 부르지?
-    public void SetPlayerInfo(uint netId)
+    
+    private void ClearPlayerInfo()
+    {
+        PlayerPanels.Clear();
+        foreach(Transform panel in Layout_Players)
+        {
+            Destroy(panel.gameObject);
+        }
+    }
+
+    private void SetPlayerInfo(uint netId)
     {
         GameObject gObj = Instantiate(Prefab_PanelResult, Layout_Players);
         Panel_Result playerResult = gObj.GetComponent<Panel_Result>();
@@ -82,5 +92,22 @@ public class UI_GameResult : MonoBehaviour
     private void OnClick_Confirm()
     {
         //우승자 띄우는 UI로
+    }
+
+    public static void Show()
+    {
+        UIManager.Instance.ShowUI(UIPrefab.GameResultUI);
+        UI_GameResult gameResultUI = UIManager.Instance.GetActiveUI(UIPrefab.GameResultUI).GetComponent<UI_GameResult>();
+
+        gameResultUI.ClearPlayerInfo();
+
+        //spawned의 Player만 세어서 netId로 SetPlayerInfo 반복.
+        foreach(var kvp in NetworkClient.spawned)
+        {
+            if(kvp.Value.TryGetComponent(out MyPlayer player))
+            {
+                gameResultUI.SetPlayerInfo(kvp.Key);
+            }
+        }
     }
 }

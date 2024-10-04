@@ -52,7 +52,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Layout_Players: {fileID: 7169033646203237525}
   Btn_Confirm: {fileID: 4311007339514941737}
-  Prefab_PanelResult: {fileID: 2991310381910290673, guid: 57ec33297f05e1f4182083787a213c4c, type: 3}
+  Prefab_PanelResult: {fileID: 7267258071856122272, guid: fabe46fcad6b7e849ac331ffbeccebd6, type: 3}
 --- !u!1 &1624880404293154951
 GameObject:
   m_ObjectHideFlags: 0

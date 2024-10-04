@@ -19,6 +19,7 @@ public enum GamePhase
     BonusDistribution,
     StageEnd,
     DungeonEnd,
+    PointCalculation,
     GameEnd
 }
 
@@ -217,6 +218,7 @@ public class GameLogicManager : NetworkBehaviour
             { GamePhase.BonusDistribution, ExecuteBonusDistribution },
             { GamePhase.StageEnd, ExecuteStageEnd },
             { GamePhase.DungeonEnd, ExecuteDungeonEnd },
+            { GamePhase.PointCalculation, ExecutePointCalculation },
             { GamePhase.GameEnd, ExecuteGameEnd }
         };
     }
@@ -773,15 +775,32 @@ public class GameLogicManager : NetworkBehaviour
         }
         else
         {
-            RpcSetPhase(GamePhase.GameEnd);
+            RpcSetPhase(GamePhase.PointCalculation);
         }
     }
 
-    private void ExecuteGameEnd()
+    #region Point Calculation
+    private void ExecutePointCalculation()
     {
-        //게임결과 보여주고 로비로 돌아갈 수 있는 창을 띄우면 될듯?
+        RpcShowGameResultUI();
 
     }
+
+
+    [ClientRpc]
+    private void RpcShowGameResultUI()
+    {
+        UI_GameResult.Show();
+    }
+    #endregion
+
+    #region Game End
+    private void ExecuteGameEnd()
+    {
+        //우승자 보여주고 버튼 누르면 로비로
+    }
+
+    #endregion
 
     #endregion
 

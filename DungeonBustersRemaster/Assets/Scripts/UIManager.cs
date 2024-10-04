@@ -44,6 +44,7 @@ public enum UIPrefab
     WaitForOtherUI,
     LoseGemsUI,
     GetRewardUI,
+    GameResultUI,
 
     SelectCardUI,
     Content_Card,

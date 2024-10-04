@@ -19,6 +19,14 @@ public enum GamePhase
     GameEnd
 }
 
+public enum ConfirmPhase
+{
+    StageBattleResult,
+    GetRewardResult,
+    LoseGemsResult,
+    GetBonusResult
+}
+
 public class GameLogicManager : NetworkBehaviour
 {
     //NetworkBehaviour에 Singleton패턴을 적용하면 NetworkManager에 의한 관리와 충돌할 수 있다.
@@ -56,6 +64,9 @@ public class GameLogicManager : NetworkBehaviour
     private bool isWin;
 
     private HashSet<uint> playerResultChecked = new HashSet<uint>();
+
+    //플레이어가 확인했는지 여부를 저장함. 어떤 단계를 확인했는지 저장해서 다른 동작을 함.
+    private Dictionary<uint, ConfirmPhase> playerConfirmations = new Dictionary<uint, ConfirmPhase>();
 
     public List<int> BonusGems => bonusGems.ToList<int>();
 
@@ -241,7 +252,68 @@ public class GameLogicManager : NetworkBehaviour
         }
     }
 
+    //모든 플레이어의 확인을 받는 시스템
+    [Server]
+    private void ServerCheckConfirm(uint netId, ConfirmPhase phase)
+    {
+        if(playerConfirmations.ContainsKey(netId))
+        {
+            playerConfirmations[netId] = phase;
+        }
+        else
+        {
+            playerConfirmations.Add(netId, phase);
+        }
 
+        CheckIfAllPlayersConfirmed(phase);
+    }
+
+    [Server]
+    private void CheckIfAllPlayersConfirmed(ConfirmPhase phase)
+    {
+        if(playerConfirmations.Count != gamePlayerCount)
+        {
+            return;
+        }
+
+        if(playerConfirmations.Values.All(p => p == phase))
+        {
+            Debug.Log($"All players confirmed for {phase}");
+
+            RpcHideWaitForOthersUI();
+
+            switch (phase)
+            {
+                case ConfirmPhase.StageBattleResult:
+                    OnAllPlayersCheckedBattleResult();
+                    break;
+                case ConfirmPhase.GetRewardResult:
+                    OnAllPlayerGetReward();
+                    break;
+                case ConfirmPhase.LoseGemsResult:
+                    OnAllMinAttackPlayerLoseGems();
+                    break;
+                case ConfirmPhase.GetBonusResult:
+                    break;
+                default:
+                    Debug.LogWarning("Unhandled phase");
+                    break;
+            }
+
+        }
+    }
+
+    [ClientRpc]
+    private void RpcHideWaitForOthersUI()
+    {
+        UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
+    }
+
+    [Command(requiresAuthority = false)]
+    public void CmdCheckConfirm(uint netId, ConfirmPhase phase)
+    {
+        ServerCheckConfirm(netId, phase);
+    }
 
 
     #region Phase Action
@@ -320,7 +392,6 @@ public class GameLogicManager : NetworkBehaviour
     {
         currentStage++;
         submittedPlayerCount = 0;
-        playerResultChecked.Clear();
         RpcInitializePlayerSubmittedCard();
 
         //Deque는 서버에서, 적용은 Rpc로
@@ -500,7 +571,6 @@ public class GameLogicManager : NetworkBehaviour
     #region RewardDistribution
     private void ExecuteRewardDistribution()
     {
-        playerResultChecked.Clear();
 
         
         ServerDebugAttackSuccessedList();
@@ -546,7 +616,8 @@ public class GameLogicManager : NetworkBehaviour
             }
             else
             {
-                playerResultChecked.Add(NetworkClient.localPlayer.netId);
+                //playerResultChecked.Add(NetworkClient.localPlayer.netId);
+                CmdCheckConfirm(NetworkClient.localPlayer.netId, ConfirmPhase.LoseGemsResult);
                 UI_WaitForOther.Show("열심히 공격하지 않은 플레이어가 벌을 받고 있습니다..");
             }
         }
@@ -564,32 +635,13 @@ public class GameLogicManager : NetworkBehaviour
         bonusGems[(int)color] += gemCount;
     }
 
-    [Server]
-    public void RegisterLoseGemResultChecked(uint netId)
-    {
-        playerResultChecked.Add(netId);
-
-        if (playerResultChecked.Count == gamePlayerCount)
-        {
-            OnAllMinAttackPlayerLoseGems();
-        }
-    }
 
     [Server]
     private void OnAllMinAttackPlayerLoseGems()
     {
-        //UI 숨기기
-        RpcHideLoseGemsUI();
-
         RpcSetPhase(GamePhase.StageEnd);
     }
 
-    [ClientRpc]
-    private void RpcHideLoseGemsUI()
-    {
-        UIManager.Instance.HideUIWithPooling(UIPrefab.LoseGemsUI);
-        UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
-    }
 
     #endregion
 
@@ -601,22 +653,10 @@ public class GameLogicManager : NetworkBehaviour
         UI_GetReward.Show(monsterDataId);
     }
 
-    [Command(requiresAuthority = false)]
-    public void CmdRegisterGetRewardChecked(uint netId)
-    {
-        playerResultChecked.Add(netId);
-
-        if(playerResultChecked.Count == gamePlayerCount)
-        {
-            OnAllPlayerGetReward();
-        }
-    }
 
     [Server]
     private void OnAllPlayerGetReward()
     {
-        RpcHideGetRewardUI();
-
         GetBonusGems();
     }
 

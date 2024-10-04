@@ -68,7 +68,8 @@ public class UI_LoseGems : MonoBehaviour
         playerGameData.CmdLoseAllGemsByColor(color);
 
         //보석 제출 했다고 logicManager에 알리기
-        GameLogicManager.Instance.RegisterLoseGemResultChecked(NetworkClient.localPlayer.netId);
+        //GameLogicManager.Instance.RegisterLoseGemResultChecked(NetworkClient.localPlayer.netId);
+        GameLogicManager.Instance.CmdCheckConfirm(NetworkClient.localPlayer.netId, ConfirmPhase.LoseGemsResult);
 
         //UI변경 (대기)
         UIManager.Instance.HideUIWithPooling(UIPrefab.LoseGemsUI);

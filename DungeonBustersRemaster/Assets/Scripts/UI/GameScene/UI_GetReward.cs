@@ -25,6 +25,7 @@ public class UI_GetReward : MonoBehaviour
 
     private void OnClick_Confirm()
     {
+        //UI숨기기
         UIManager.Instance.HideUIWithPooling(UIPrefab.GetRewardUI);
 
         //reward로 보상 얻는 Cmd보내기
@@ -41,7 +42,8 @@ public class UI_GetReward : MonoBehaviour
         }
 
         //GameLogicManger에 신호보내기
-        GameLogicManager.Instance.CmdRegisterGetRewardChecked(NetworkClient.localPlayer.netId);
+        //GameLogicManager.Instance.CmdRegisterGetRewardChecked(NetworkClient.localPlayer.netId);
+        GameLogicManager.Instance.CmdCheckConfirm(NetworkClient.localPlayer.netId, ConfirmPhase.GetRewardResult);
     }
 
     private void SetLayoutReward(List<int> reward, int currentRank)
@@ -88,7 +90,7 @@ public class UI_GetReward : MonoBehaviour
         {
             UI_WaitForOther.Show("다른 플레이어가 보상 받는 것을 기다리고 있습니다.");
             //LogicManager에 확인 신호보내기
-            GameLogicManager.Instance.CmdRegisterGetRewardChecked(NetworkClient.localPlayer.netId);
+            GameLogicManager.Instance.CmdCheckConfirm(NetworkClient.localPlayer.netId, ConfirmPhase.GetRewardResult);
         }
     }
 

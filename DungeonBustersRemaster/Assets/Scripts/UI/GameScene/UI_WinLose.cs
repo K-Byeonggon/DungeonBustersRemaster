@@ -41,20 +41,17 @@ public class UI_WinLose : MonoBehaviour
 
     private void OnClick_Confirm()
     {
+        //LogicManager에 확인했다고 결과 전송
+        GameLogicManager.Instance.CmdCheckConfirm(NetworkClient.localPlayer.netId, ConfirmPhase.StageBattleResult);
+
         UIManager.Instance.HideUIWithPooling(UIPrefab.WinLoseUI);
-        //여기서 UI닫히는거 뿐만 아니라, 서버에 결과를 확인했음을 전송해야함.
-        //단순하게 하는 방법 GameLogicManager에 컨테이너 만들기
-        //거 netId로 Dic만들어서 하기
-
-        //또는 PlayerGameData에 bool변수 만들기 (isStageResultChecked)
-        //그거를 Cmd로 쏴서? 그 SubmittedCard처럼 동작
-        //아니네 PlayerGameData의 checked를 바꿔도 Server의 LogicManager에서 알아야하네.
-
-        //아무튼 LogicManager에서 알아야함.그러면 컨테이너 써?
+        UI_WaitForOther.Show("다른 플레이어의 결과 확인을 기다리는 중..");
 
 
+        /*
         MyPlayerGameData playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
         playerGameData.CmdSendCheckStageResult();
+        */
     }
 
     public static void Show(bool isWin)

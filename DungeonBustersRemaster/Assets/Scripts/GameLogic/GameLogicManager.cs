@@ -136,13 +136,13 @@ public class GameLogicManager : NetworkBehaviour
         {
             case SyncList<int>.Operation.OP_ADD:
                 UI_BonusGems.UpdateBonusGems(BonusGems);
-                if(UIManager.Instance.GetActiveUI(UIPrefab.LoseGemsUI) != null)
+                if (UIManager.Instance.GetActiveUI(UIPrefab.LoseGemsUI) != null)
                 {
                     UI_LoseGems.UpdateBonusGems(BonusGems);
                 }
                 break;
             case SyncList<int>.Operation.OP_SET:
-                UI_BonusGems.UpdateBonusGems(BonusGems); 
+                UI_BonusGems.UpdateBonusGems(BonusGems);
                 if (UIManager.Instance.GetActiveUI(UIPrefab.LoseGemsUI) != null)
                 {
                     UI_LoseGems.UpdateBonusGems(BonusGems);
@@ -229,7 +229,7 @@ public class GameLogicManager : NetworkBehaviour
     {
         this.gamePlayerCount = gamePlayerCount;
         Debug.Log(this.gamePlayerCount + "명의 GamePlayer");
-        
+
         if (isServer)
         {
             RpcSetPhase(GamePhase.GameStart);
@@ -268,7 +268,7 @@ public class GameLogicManager : NetworkBehaviour
     [Server]
     private void ServerCheckConfirm(uint netId, ConfirmPhase phase)
     {
-        if(playerConfirmations.ContainsKey(netId))
+        if (playerConfirmations.ContainsKey(netId))
         {
             playerConfirmations[netId] = phase;
         }
@@ -283,12 +283,12 @@ public class GameLogicManager : NetworkBehaviour
     [Server]
     private void CheckIfAllPlayersConfirmed(ConfirmPhase phase)
     {
-        if(playerConfirmations.Count != gamePlayerCount)
+        if (playerConfirmations.Count != gamePlayerCount)
         {
             return;
         }
 
-        if(playerConfirmations.Values.All(p => p == phase))
+        if (playerConfirmations.Values.All(p => p == phase))
         {
             Debug.Log($"All players confirmed for {phase}");
 
@@ -471,7 +471,7 @@ public class GameLogicManager : NetworkBehaviour
     [Command(requiresAuthority = false)]
     public void CmdAddSubmittedPlayerCount()
     {
-        if(currentPhase == GamePhase.CardSubmission)
+        if (currentPhase == GamePhase.CardSubmission)
         {
             submittedPlayerCount++;
         }
@@ -479,7 +479,7 @@ public class GameLogicManager : NetworkBehaviour
     [Command(requiresAuthority = false)]
     public void CmdSubSubmittedPlayerCount()
     {
-        if(currentPhase == GamePhase.CardSubmission && submittedPlayerCount > 0)
+        if (currentPhase == GamePhase.CardSubmission && submittedPlayerCount > 0)
         {
             submittedPlayerCount--;
         }
@@ -527,7 +527,7 @@ public class GameLogicManager : NetworkBehaviour
         int monsterHP = MonsterDataManager.Instance.LoadedMonsters[currentMonsterDataId].HP;
 
         RpcDebugResult(sumOfAttack, monsterHP);
-        
+
         if (sumOfAttack >= monsterHP)
         {
             isWin = true;
@@ -582,7 +582,7 @@ public class GameLogicManager : NetworkBehaviour
     private void ExecuteRewardDistribution()
     {
         ServerDebugAttackSuccessedList();
-        
+
         //승리후 보석분배, 보너스보석 분배 / 패배후 보석회수가 이루어진다.
 
         //승리했을 경우
@@ -604,7 +604,7 @@ public class GameLogicManager : NetworkBehaviour
     [Server]
     private void ServerDebugAttackSuccessedList()
     {
-        foreach(PlayerCardInfo player in calculator.AttackSuccessedList)
+        foreach (PlayerCardInfo player in calculator.AttackSuccessedList)
         {
             Debug.Log($"Player{player.NetId}(attackSuccessed) CardNum: {player.CardNumber}");
         }
@@ -677,7 +677,7 @@ public class GameLogicManager : NetworkBehaviour
     private void ExecuteBonusDistribution()
     {
         //보너스 없으면 다음 Phase로
-        if(bonusGems.All(gem => gem == 0))
+        if (bonusGems.All(gem => gem == 0))
         {
             RpcSetPhase(GamePhase.StageEnd);
             return;
@@ -698,12 +698,12 @@ public class GameLogicManager : NetworkBehaviour
     [ClientRpc]
     private void RpcShowGetBonusUI(int[] arrayBonus, uint currentGetBonusPlayerNetId)
     {
-        if(NetworkClient.localPlayer.netId == currentGetBonusPlayerNetId)
+        if (NetworkClient.localPlayer.netId == currentGetBonusPlayerNetId)
         {
             UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
 
             UI_GetBonus.Show(arrayBonus);
-            
+
         }
         else
         {
@@ -792,12 +792,41 @@ public class GameLogicManager : NetworkBehaviour
     {
         UI_GameResult.Show();
     }
+
+    [Command(requiresAuthority = false)]
+    public void CmdRequestSetPhaseGameEnd()
+    {
+        TargetSetPhaseGameEnd(connectionToClient);
+    }
+
+    [TargetRpc]
+    public void TargetSetPhaseGameEnd(NetworkConnection target)
+    {
+        CurrentPhase = GamePhase.GameEnd;
+        ClientExecuteCurrentPhase();
+    }
+
+    [Client]
+    private void ClientExecuteCurrentPhase()
+    {
+        if (phaseActions.TryGetValue(currentPhase, out Action action))
+        {
+            action.Invoke();
+        }
+        else
+        {
+            Debug.LogError($"No action defind for rpcphase {currentPhase}");
+        }
+    }
+
     #endregion
 
     #region Game End
     private void ExecuteGameEnd()
     {
         //우승자 보여주고 버튼 누르면 로비로
+        uint netId = 0;
+        UI_WinPlayer.Show(netId);
     }
 
     #endregion

@@ -1,4 +1,5 @@
 using Mirror;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,7 @@ public class MyPlayerGameData : NetworkBehaviour
 
     private bool isMinAttackPlayer;
 
+    [SyncVar(hook = nameof(OnCurrentStageRankChanged))]
     private int currentStageRank;
 
     public List<int> Hands => hands.ToList();
@@ -195,6 +197,12 @@ public class MyPlayerGameData : NetworkBehaviour
     [Command(requiresAuthority = false)]
     public void CmdGetReward(int[] arrayReward)
     {
+        if(arrayReward.Length == 0 || arrayReward == null)
+        {
+            Debug.LogWarning("reward is empty");
+            return;
+        }
+
         for(int i = 0;  i < arrayReward.Length; i++)
         {
             if (arrayReward[i] > 0)
@@ -212,6 +220,13 @@ public class MyPlayerGameData : NetworkBehaviour
         gems[(int)color] = 0;
 
         GameLogicManager.Instance.AddBonusGemsToLogicManager(color, loseGemCount);
+    }
+
+    //GameManager의 calculator를 통해서 플레이어 보상 순서 결정.
+    [Command(requiresAuthority = false)]
+    public void CmdUpdateCurrentStageRank(int newRank)
+    {
+        currentStageRank = newRank;
     }
 
     #region hook
@@ -312,6 +327,12 @@ public class MyPlayerGameData : NetworkBehaviour
 
     private void OnIsCardSubmittedChanged(bool oldBool, bool newBool)
     {
+
+    }
+
+    private void OnCurrentStageRankChanged(int oldRank, int newRank)
+    {
+        Debug.Log($"Player{netId} CurrentStageRankChanged: {oldRank} -> {newRank}");
 
     }
     #endregion

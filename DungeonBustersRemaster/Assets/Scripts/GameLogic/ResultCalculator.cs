@@ -101,30 +101,18 @@ public class ResultCalculator
     }
 
     //정렬방식: 공격 성공리스트가 순서대로 넣어짐. 공격 실패한 것들은 그 뒤로 넣어짐.
+    //공격 성공한 플레이어의 순위: 0, 1, 2, ...  실패 플레이어 순위: -1
     private void SetRewardOrder()
     {
-        //초기화
-        rewardOrder.Clear();
-
-        //공격 성공 플레이어 추가
-        foreach(var info in attackSuccessedList)
+        //attackSuccessedList로 플레이어 순위 변경(0, 1, 2, ...)(-1)
+        foreach(var kvp in NetworkClient.spawned)
         {
-            rewardOrder.Enqueue(info.NetId);
-        }
-
-        // 나머지 플레이어 추가
-        // 공격 성공한 플레이어들의 NetId를 HashSet으로 변환 (빠른 검색을 위해)
-        HashSet<uint> successedNetIds = new HashSet<uint>(attackSuccessedList.Select(info => info.NetId));
-
-        // submittedCardNums에서 attackSuccessedList에 없는 나머지 플레이어들의 NetId를 필터링
-        List<uint> remainingPlayers = submittedCardNums
-            .Where(cardInfo => !successedNetIds.Contains(cardInfo.NetId)) // 공격에 성공하지 않은 플레이어
-            .Select(cardInfo => cardInfo.NetId)  // 그들의 NetId를 추출
-            .ToList();
-        
-        foreach (var netId in remainingPlayers)
-        {
-            rewardOrder.Enqueue(netId);
+            if(kvp.Value.TryGetComponent(out MyPlayerGameData playerGameData))
+            {
+                //FindIndex는 원하는 조건을 찾지 못하면 -1을 반환한다.
+                int currentStageRank = attackSuccessedList.FindIndex(x => x.NetId == playerGameData.netId);
+                playerGameData.CmdUpdateCurrentStageRank(currentStageRank);
+            }
         }
     }
 

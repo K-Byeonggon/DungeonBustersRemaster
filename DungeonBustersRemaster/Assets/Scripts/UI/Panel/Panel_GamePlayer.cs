@@ -52,9 +52,9 @@ public class Panel_GamePlayer : MonoBehaviour
     public void UpdateUsedCards()
     {
         //초기화. 최적화 여지가 있긴함.
-        foreach(GameObject child in Layout_PlayerUsedCards)
+        foreach(Transform child in Layout_PlayerUsedCards)
         {
-            Destroy(child);
+            Destroy(child.gameObject);
         }
 
         GameObject prefabCard = UIManager.Instance.JustGetUIPrefab(UIPrefab.Content_Card);

@@ -502,34 +502,16 @@ public class GameLogicManager : NetworkBehaviour
     {
         playerResultChecked.Clear();
 
-        RpcDebugAttackSuccessedList();
+        
+        ServerDebugAttackSuccessedList();
+        
         //승리후 보석분배, 보너스보석 분배 / 패배후 보석회수가 이루어진다.
 
         //승리했을 경우
         if (isWin)
         {
-            List<List<int>> rewards = MonsterDataManager.Instance.LoadedMonsters[currentMonsterDataId].Reward;
-
-            for(int i = 0; i < rewards.Count; i++)
-            {
-                //보상받을 플레이어가 없을 경우 예외처리
-                if (i > calculator.AttackSuccessedList.Count - 1) break;
-
-                //AttackSuccessedList는 적은 카드를 낸 순으로 정렬되어있다.
-                PlayerCardInfo playerInfo = calculator.AttackSuccessedList[i];
-                NetworkIdentity identity = NetworkClient.spawned[playerInfo.NetId];
-                MyPlayerGameData playerGameData = identity.GetComponent<MyPlayerGameData>();
-
-                List<int> reward = rewards[i];
-
-                Debug.Log("reward: "+ string.Join(", ", reward));
-
-                int[] arrayReward = reward.ToArray();
-
-                playerGameData.CmdGetReward(arrayReward);
-            }
-
-
+            //UI띄우기
+            RpcShowGetRewardUI(currentMonsterDataId);
 
         }
         //패배했을 경우
@@ -541,8 +523,8 @@ public class GameLogicManager : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
-    private void RpcDebugAttackSuccessedList()
+    [Server]
+    private void ServerDebugAttackSuccessedList()
     {
         foreach(PlayerCardInfo player in calculator.AttackSuccessedList)
         {
@@ -593,18 +575,17 @@ public class GameLogicManager : NetworkBehaviour
         }
     }
 
-
     [Server]
     private void OnAllMinAttackPlayerLoseGems()
     {
         //UI 숨기기
-        RpcHideWaitForOtherUI();
+        RpcHideLoseGemsUI();
 
         RpcSetPhase(GamePhase.StageEnd);
     }
 
     [ClientRpc]
-    private void RpcHideWaitForOtherUI()
+    private void RpcHideLoseGemsUI()
     {
         UIManager.Instance.HideUIWithPooling(UIPrefab.LoseGemsUI);
         UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
@@ -615,17 +596,35 @@ public class GameLogicManager : NetworkBehaviour
     #region 승리(RewardDistribution)
 
     [ClientRpc]
-    private void RpcShowGetRewardUI(int monsterDataId, int rewardIndex)
+    private void RpcShowGetRewardUI(int monsterDataId)
     {
-        //아이거 머리아프네
-        //효율적인 방법이 있을거 같은데..
+        UI_GetReward.Show(monsterDataId);
     }
 
+    [Command(requiresAuthority = false)]
+    public void CmdRegisterGetRewardChecked(uint netId)
+    {
+        playerResultChecked.Add(netId);
+
+        if(playerResultChecked.Count == gamePlayerCount)
+        {
+            OnAllPlayerGetReward();
+        }
+    }
 
     [Server]
     private void OnAllPlayerGetReward()
     {
+        RpcHideGetRewardUI();
+
         GetBonusGems();
+    }
+
+    [ClientRpc]
+    private void RpcHideGetRewardUI()
+    {
+        UIManager.Instance.HideUIWithPooling(UIPrefab.GetRewardUI);
+        UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
     }
 
     private void GetBonusGems()

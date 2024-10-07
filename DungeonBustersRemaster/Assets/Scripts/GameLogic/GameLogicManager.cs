@@ -38,6 +38,7 @@ public class GameLogicManager : NetworkBehaviour
     public static GameLogicManager Instance;
 
     [SerializeField] MonsterSpawner monsterSpawner;
+    [SerializeField] List<CorridorController> corridors;
 
     private ResultCalculator calculator;
 
@@ -342,6 +343,15 @@ public class GameLogicManager : NetworkBehaviour
         ServerCheckConfirm(netId, phase);
     }
 
+    [ClientRpc]
+    private void RpcMoveCorridors(float duration)
+    {
+        foreach(var corridor in corridors)
+        {
+            corridor.StartMove(duration);
+        }
+    }
+
 
     #region Phase Action
 
@@ -416,6 +426,7 @@ public class GameLogicManager : NetworkBehaviour
         //다음 몬스터를 향해 달려가는 애니메이션이 재생된다.
 
         PlayStageAnimation(3.0f).Forget();
+        RpcMoveCorridors(3.0f);
 
     }
     [ClientRpc]

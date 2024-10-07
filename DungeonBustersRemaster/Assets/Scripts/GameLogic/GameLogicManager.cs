@@ -324,6 +324,18 @@ public class GameLogicManager : NetworkBehaviour
         UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
     }
 
+    [ClientRpc]
+    private void RpcHideUIWithPooling(UIPrefab uIPrefab)
+    {
+        UIManager.Instance.HideUIWithPooling(uIPrefab);
+    }
+
+    [ClientRpc]
+    private void RpcHidUIWithTimer(UIPrefab uIPrefab)
+    {
+        UIManager.Instance.HideUIWithTimer(uIPrefab);
+    }
+
     [Command(requiresAuthority = false)]
     public void CmdCheckConfirm(uint netId, ConfirmPhase phase)
     {
@@ -709,7 +721,15 @@ public class GameLogicManager : NetworkBehaviour
             // Local의 gameData의 isMinAttackPlayer에 따라 다른 UI를 띄워준다.
             if (playerGameData.IsMinAttackPlayer)
             {
-                UIManager.Instance.ShowUI(UIPrefab.LoseGemsUI);
+                if(playerGameData.Gems.Max() > 0)
+                {
+                    UIManager.Instance.ShowUI(UIPrefab.LoseGemsUI);
+                }
+                else
+                {
+                    CmdCheckConfirm(NetworkClient.localPlayer.netId, ConfirmPhase.LoseGemsResult);
+                    UI_WaitForOther.Show("제출할 보석마저 없으시군요! 안타깝네요~");
+                }
             }
             else
             {
@@ -844,6 +864,8 @@ public class GameLogicManager : NetworkBehaviour
 
     private void ExecuteStageEnd()
     {
+        RpcHideWaitForOthersUI();
+        RpcHideUIWithPooling(UIPrefab.LoseGemsUI);
         //아직 몬스터 남았으면 StageStart로
         if (currentDungeonMonsterIds.Count > 0)
         {

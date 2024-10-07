@@ -16,12 +16,17 @@ public class UI_LoseGems : MonoBehaviour
 
     private MyPlayerGameData playerGameData;
 
+
     private void OnEnable()
     {
         playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
 
+
+
         SetBonusInfo(GameLogicManager.Instance.BonusGems);
         SetLayoutGems();
+        
+
     }
 
     private void OnDisable()

@@ -11,10 +11,6 @@ using UnityEngine.SceneManagement;
 //UI 프리펩을 만들고 프리펩 이름을 UIPrefab에 추가할 것.
 public enum UIPrefab
 {
-    //임시
-    TempUI,
-    TempUI2,
-
     //어디서든
     NotifyUI,
 

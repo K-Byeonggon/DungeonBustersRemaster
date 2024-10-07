@@ -405,16 +405,6 @@ public class GameLogicManager : NetworkBehaviour
 
         PlayStageAnimation(3.0f).Forget();
 
-        /*
-        ServerExecuteStageStart();
-
-        RpcExecuteStageStart();
-
-        if (isServer)
-        {
-            RpcSetPhase(GamePhase.CardSubmission);
-
-        }*/
     }
     [ClientRpc]
     private void RpcClearMonsterInfoBeforeAnimation()
@@ -561,6 +551,39 @@ public class GameLogicManager : NetworkBehaviour
         //플레이어가 제출한 카드의 숫자로 현재 스테이지의 몬스터를 쓰러뜨릴수 있는지 계산한다.
         //플레이어의 공격 성공여부를 갱신해준다.
         calculator.SetSubmittedCardNums();
+
+        PlayAnimationAfterCalculation(1.5f).Forget();
+
+    }
+
+    [Server]
+    private async UniTask PlayAnimationAfterCalculation(float delay)
+    {
+        foreach(var kvp in NetworkClient.spawned)
+        {
+            if(kvp.Value.TryGetComponent(out MyPlayer player))
+            {
+                //공격 성공 애니메이션 재생할 플레이어들
+                if(calculator.AttackSuccessedList.Any(p => p.NetId == player.netId))
+                {
+                    RpcSetPlayerAnimation(player.netId, AnimationState.Attack);
+                }
+                //공격 실패 애니메이션 재생할 플레이어들
+                else
+                {
+                    RpcSetPlayerAnimation(player.netId, AnimationState.Damaged);
+                }
+            }
+        }
+
+        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+
+        CalculationRemainedTask();
+    }
+
+    [Server]
+    private void CalculationRemainedTask()
+    {
         int sumOfAttack = calculator.GetSumOfAttack();
         int monsterHP = MonsterDataManager.Instance.LoadedMonsters[currentMonsterDataId].HP;
 
@@ -585,6 +608,8 @@ public class GameLogicManager : NetworkBehaviour
     {
         UI_WinLose.Show(isWin);
     }
+
+
 
 
     [Server]

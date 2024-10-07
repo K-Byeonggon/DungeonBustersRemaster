@@ -13,9 +13,7 @@ public enum UIPrefab
 {
     //어디서든
     NotifyUI,
-
-    //타이틀
-    TitleUI,
+    DecisionUI,
 
     //Lobby(Offline) Scene
     LobbyUI,

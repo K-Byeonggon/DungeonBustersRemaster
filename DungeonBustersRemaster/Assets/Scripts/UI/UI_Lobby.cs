@@ -7,17 +7,12 @@ using UnityEngine.UI;
 public class UI_Lobby : MonoBehaviour
 {
     [Header("Top")]
-    [SerializeField] TextMeshProUGUI Text_PlayerName;
     [SerializeField] Button Btn_Setting;
-
-    [Header("Mid")]
-    [SerializeField] RawImage RImg_Player;
 
     [Header("Bottom")]
     [SerializeField] Button Btn_StartWithHost;
     [SerializeField] Button Btn_StartWithGuest;
-    [SerializeField] Button Btn_SetName;
-    [SerializeField] Button Btn_SelectCharacter;
+    [SerializeField] Button Btn_Quit;
 
 
     private void OnEnable()
@@ -28,8 +23,7 @@ public class UI_Lobby : MonoBehaviour
 
         Btn_StartWithHost.onClick.AddListener(OnClick_StartWithHost);
         Btn_StartWithGuest.onClick.AddListener(OnClick_StartWithGuest);
-        Btn_SetName.onClick.AddListener(OnClick_SetName);
-        Btn_SelectCharacter.onClick.AddListener(OnClick_SelectCharacter);
+        Btn_Quit.onClick.AddListener(OnClick_Quit);
     }
 
     private void OnDisable()
@@ -38,8 +32,7 @@ public class UI_Lobby : MonoBehaviour
 
         Btn_StartWithHost.onClick.RemoveListener(OnClick_StartWithHost);
         Btn_StartWithGuest.onClick.RemoveListener(OnClick_StartWithGuest);
-        Btn_SetName.onClick.RemoveListener(OnClick_SetName);
-        Btn_SelectCharacter.onClick.RemoveListener(OnClick_SelectCharacter);
+        Btn_Quit.onClick.RemoveListener(OnClick_Quit);
     }
 
 
@@ -60,14 +53,20 @@ public class UI_Lobby : MonoBehaviour
         UIManager.Instance.ShowUI(UIPrefab.ClientConnectUI);
     }
 
-    private void OnClick_SetName()
+    private void OnClick_Quit()
     {
-
+        string message = "게임을 종료하시겠습니까?";
+        UI_Decision.Show(message, QuitGame);
     }
 
-    private void OnClick_SelectCharacter()
+    private void QuitGame()
     {
+        Debug.Log("QuitGame");
 
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
     }
-
 }

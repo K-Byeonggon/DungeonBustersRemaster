@@ -9,6 +9,7 @@ public class MonsterSpawner : MonoBehaviour
 
     private GameObject monster;
 
+    public GameObject Monster => monster;
 
     //MonsterPosition을 가진 오브젝트에서 OnEnable에 실행함.
     public static void RegisterMonsterPosition(Transform position)

@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using Mirror;
 using Mirror.Examples.CCU;
 using System;
@@ -390,6 +391,8 @@ public class GameLogicManager : NetworkBehaviour
         playerGameData.CmdInitializeCardSettings();
     }
 
+
+
     #endregion
 
     #region StageStart
@@ -400,6 +403,43 @@ public class GameLogicManager : NetworkBehaviour
 
         //다음 몬스터를 향해 달려가는 애니메이션이 재생된다.
 
+        PlayStageAnimation(3.0f).Forget();
+
+        /*
+        ServerExecuteStageStart();
+
+        RpcExecuteStageStart();
+
+        if (isServer)
+        {
+            RpcSetPhase(GamePhase.CardSubmission);
+
+        }*/
+    }
+    [ClientRpc]
+    private void RpcClearMonsterInfoBeforeAnimation()
+    {
+        UI_MonsterInfo.ClearMonsterInfo();
+        //MonsterSpawner의 Monster도 잠깐 꺼야함. 아니면 Defeated 애니메이션 끝나고 알아서 꺼주든가.
+    }
+
+    [Server]
+    private async UniTask PlayStageAnimation(float delay)
+    {
+        RpcClearMonsterInfoBeforeAnimation();
+
+        RpcSetAllPlayerAnimation(AnimationState.Running);
+
+        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+
+        RpcSetAllPlayerAnimation(AnimationState.Idle);
+
+        StageRemainedTask();
+    }
+
+    [Server]
+    private void StageRemainedTask()
+    {
         ServerExecuteStageStart();
 
         RpcExecuteStageStart();
@@ -410,6 +450,7 @@ public class GameLogicManager : NetworkBehaviour
 
         }
     }
+
     [Server]
     private void ServerExecuteStageStart()
     {
@@ -446,11 +487,6 @@ public class GameLogicManager : NetworkBehaviour
     private void RpcExecuteStageStart()
     {
 
-        UIManager.Instance.ShowUI(UIPrefab.MonsterInfoUI);
-        UIManager.Instance.ShowUI(UIPrefab.BonusGemsUI);
-        UIManager.Instance.ShowUI(UIPrefab.TimerUI);
-        UIManager.Instance.ShowUI(UIPrefab.CardPanelUI);
-        UIManager.Instance.ShowUI(UIPrefab.PlayerInfoUI);
     }
 
     #endregion
@@ -856,4 +892,31 @@ public class GameLogicManager : NetworkBehaviour
 
     #endregion
 
+    [ClientRpc]
+    private void RpcSetPlayerAnimation(uint netId, AnimationState animState)
+    {
+        if (NetworkClient.spawned[netId].TryGetComponent(out MyPlayer player))
+        {
+            player.SetAnimator(animState);
+        }
+    }
+
+    [ClientRpc]
+    private void RpcSetAllPlayerAnimation(AnimationState animState)
+    {
+        foreach(var kvp in NetworkClient.spawned)
+        {
+            if(kvp.Value.TryGetComponent(out MyPlayer player))
+            {
+                player.SetAnimator(animState);
+            }
+        }
+    }
+
+    [ClientRpc]
+    private void RpcSetMonsterAnimation(AnimationState animState)
+    {
+        MonsterController monster = monsterSpawner.Monster.GetComponent<MonsterController>();
+        monster.SetAnimator(animState);
+    }
 }

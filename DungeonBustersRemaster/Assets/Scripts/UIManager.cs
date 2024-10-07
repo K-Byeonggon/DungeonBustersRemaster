@@ -84,7 +84,7 @@ public class UIManager : Singleton<UIManager>
         await UniTask.Yield();
     }
 
-    public void ShowUI(UIPrefab uiPrefab)
+    public void ShowUI(UIPrefab uiPrefab, bool setLastSibling = true)
     {
         //해당 프리펩 이 uiPrefabs에 있는지 검사
         string uiName = uiPrefab.GetPrefabName();
@@ -100,14 +100,14 @@ public class UIManager : Singleton<UIManager>
         //해당 이름의 인스턴스가 activeUIs에 있는지 검사
         if (!activeUIs.TryGetValue(instanceName, out var uiInstance))   //없으면 넣어줌
         {
-            uiInstance = GetOrCreateUIInstance(prefab, instanceName);
+            uiInstance = GetOrCreateUIInstance(prefab, instanceName, setLastSibling);
             activeUIs[instanceName] = uiInstance;
         }
         else
         {
             if(uiInstance == null)  //있는데 null이면 다시 넣어줌.
             {
-                uiInstance = GetOrCreateUIInstance(prefab, instanceName);
+                uiInstance = GetOrCreateUIInstance(prefab, instanceName, setLastSibling);
                 activeUIs[instanceName] = uiInstance;
             }
             else        //그냥 비활성화 상태면 다시 켜줌.
@@ -118,7 +118,7 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
-    private GameObject GetOrCreateUIInstance(GameObject prefab, string instanceName)
+    private GameObject GetOrCreateUIInstance(GameObject prefab, string instanceName, bool setLastSibling = true)
     {
         var canvas = GameObject.Find("@UI_Canvas");
         if(canvas == null)
@@ -133,7 +133,10 @@ public class UIManager : Singleton<UIManager>
             GameObject uiInstance = pool.Pop();
             uiInstance.transform.SetParent(canvas.transform);
             uiInstance.SetActive(true);
-            uiInstance.transform.SetAsLastSibling();    //캔버스의 가장 앞에 위치하도록
+            if (setLastSibling)
+            {
+                uiInstance.transform.SetAsLastSibling();    //캔버스의 가장 앞에 위치하도록
+            }
             return uiInstance;
         }
         else //Pool에 없었음.

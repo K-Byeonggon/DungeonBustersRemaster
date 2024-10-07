@@ -3,12 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum MonsterAnimation
+public enum AnimationState
 {
     Idle,
+    Running,
+    Defeated,
     Attack,
     Damaged,
-    Die,
     Win
 }
 
@@ -67,8 +68,32 @@ public class MonsterController : MonoBehaviour
         animator = null;
     }
 
-    public void SetAnimator(MonsterAnimation anim)
+    public void SetAnimator(AnimationState anim)
     {
-
+        switch (anim)
+        {
+            case AnimationState.Idle:
+                animator.SetBool("IsRunning", false);
+                animator.SetBool("IsDefeated", false);
+                break;
+            case AnimationState.Running:
+                animator.SetBool("IsRunning", true);
+                break;
+            case AnimationState.Defeated:
+                animator.SetBool("IsDefeated", true);
+                break;
+            case AnimationState.Attack:
+                animator.SetTrigger("Attack");
+                break;
+            case AnimationState.Damaged:
+                animator.SetTrigger("Damaged");
+                break;
+            case AnimationState.Win:
+                animator.SetTrigger("Win");
+                break;
+            default:
+                Debug.LogError($"Invalid AnimationState {anim.ToString()}");
+                break;
+        }
     }
 }

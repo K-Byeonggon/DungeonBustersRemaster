@@ -19,17 +19,44 @@ public class UI_MonsterInfo : MonoBehaviour
 
     private void UpdateMonsterName(int monsterDataId)
     {
-        Text_MonsterName.text = MonsterDataManager.Instance.LoadedMonsters[monsterDataId].Name;
+        string name = string.Empty;
+        if(monsterDataId != -1)
+        {
+            name = MonsterDataManager.Instance.LoadedMonsters[monsterDataId].Name;
+        }
+        else
+        {
+            name = "???";
+        }
+        Text_MonsterName.text = name;
     }
 
     private void UpdateMonsterHP(int monsterDataId)
     {
-        int hp = MonsterDataManager.Instance.LoadedMonsters[monsterDataId].HP;
+        string hp = string.Empty;
+        if(monsterDataId != -1)
+        {
+            hp = MonsterDataManager.Instance.LoadedMonsters[monsterDataId].HP.ToString();
+        }
+        else
+        {
+            hp = "??";
+        }
+
         Text_MonsterHP.text = $"HP: {hp}";
     }
 
     private void UpdateReward(int monsterDataId)
     {
+        if (monsterDataId < 0)
+        {
+            foreach(Transform reward in Layout_Reward)
+            {
+                reward.gameObject.SetActive(false);
+            }
+            return;
+        }
+
         List<List<int>> rewardsData = MonsterDataManager.Instance.LoadedMonsters[monsterDataId].Reward;
 
         for (int i = 0; i < rewardsData.Count; i++)
@@ -46,6 +73,19 @@ public class UI_MonsterInfo : MonoBehaviour
                 reward.SetActive(false);
             }
         }
+    }
+
+    private void SetClearMonsterInfo()
+    {
+        UpdateMonsterName(-1);
+        UpdateMonsterHP(-1);
+        UpdateReward(-1);
+    }
+
+    public static void ClearMonsterInfo()
+    {
+        UI_MonsterInfo monsterInfoUI = UIManager.Instance.GetActiveUI(UIPrefab.MonsterInfoUI).GetComponent<UI_MonsterInfo>();
+        monsterInfoUI.SetClearMonsterInfo();
     }
 
     //GameLogicManager의 currentMonsterDataId가 변경될 때 hook으로 불림

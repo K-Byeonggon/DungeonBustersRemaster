@@ -29,6 +29,7 @@ public class MyPlayer : NetworkBehaviour
     [Header("Player Models")]
     [SerializeField] List<GameObject> CharacterModels;
 
+    private Animator animator;
 
     public int CharacterIndex => characterIndex;
     public string Nickname => nickname;
@@ -43,7 +44,11 @@ public class MyPlayer : NetworkBehaviour
 
         if (characterIndex == -1) return;
 
+        //모델 활성화
         CharacterModels[characterIndex].SetActive(true);
+
+        //활성화된 모델의 Animator 등록
+        animator = GetComponentInChildren<Animator>(false);
     }
 
 
@@ -96,6 +101,35 @@ public class MyPlayer : NetworkBehaviour
     public void CmdRequestSetPhaseGameEnd()
     {
         GameLogicManager.Instance.TargetSetPhaseGameEnd(connectionToClient);
+    }
+
+    public void SetAnimator(AnimationState anim)
+    {
+        switch (anim)
+        {
+            case AnimationState.Idle:
+                animator.SetBool("IsRunning", false);
+                animator.SetBool("IsDefeated", false);
+                break;
+            case AnimationState.Running:
+                animator.SetBool("IsRunning", true);
+                break;
+            case AnimationState.Defeated:
+                animator.SetBool("IsDefeated", true);
+                break;
+            case AnimationState.Attack:
+                animator.SetTrigger("Attack");
+                break;
+            case AnimationState.Damaged:
+                animator.SetTrigger("Damaged");
+                break;
+            case AnimationState.Win:
+                animator.SetTrigger("Win");
+                break;
+            default:
+                Debug.LogError($"Invalid AnimationState {anim.ToString()}");
+                break;
+        }
     }
 
     #region hook

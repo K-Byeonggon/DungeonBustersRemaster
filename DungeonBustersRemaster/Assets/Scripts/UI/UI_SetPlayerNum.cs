@@ -34,13 +34,13 @@ public class UI_SetPlayerNum : MonoBehaviour
 
     private void OnClick_3Players()
     {
-        //MyNetworkRoomManager.Instance.minPlayers = 3; 테스트 중에는 제한 없이
+        MyNetworkRoomManager.Instance.minPlayers = 3;
         MyNetworkRoomManager.Instance.StartHost();
     }
 
     private void OnClick_45Players()
     {
-        //MyNetworkRoomManager.Instance.minPlayers = 4; 테스트 중에는 제한 없이
+        MyNetworkRoomManager.Instance.minPlayers = 4;
         MyNetworkRoomManager.Instance.StartHost();
     }
 

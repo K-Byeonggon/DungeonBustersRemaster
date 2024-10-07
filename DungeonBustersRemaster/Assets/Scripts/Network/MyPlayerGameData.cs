@@ -118,7 +118,7 @@ public class MyPlayerGameData : NetworkBehaviour
     [Server]
     public void InitializeGems()
     {
-        List<int> list = new List<int>() { 0, 0, 0 };
+        List<int> list = new List<int>() { 1, 1, 1 };
         gems.Clear();
         gems.AddRange(list);
     }

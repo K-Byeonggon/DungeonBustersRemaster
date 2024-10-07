@@ -9,7 +9,13 @@ using UnityEngine.UI;
 public class UI_WinLose : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI Text_WinLose;
+    [SerializeField] Transform Layout_OpenPlayer;
     [SerializeField] Button Btn_Confirm;
+
+    [Header("OpenPlayerPrefab")]
+    [SerializeField] GameObject Prefab_PanelResult;
+
+    private Dictionary<uint, Panel_OpenPlayer> PlayerPanels = new Dictionary<uint, Panel_OpenPlayer>();
 
     private void OnEnable()
     {
@@ -21,10 +27,60 @@ public class UI_WinLose : MonoBehaviour
         Btn_Confirm.onClick.RemoveListener(OnClick_Confirm);
     }
 
-    private void PlayWinLoseAnimation()
+
+    private void ClearPlayerInfo()
     {
-        //할 수 있다면 오버워치 승리/패배처럼 결과창 애니메이션을 추가하고 싶음.
+        PlayerPanels.Clear();
+        foreach(Transform panel in Layout_OpenPlayer)
+        {
+            Destroy(panel.gameObject);
+        }
     }
+
+    private void SetOpenPlayerInfo(uint netId)
+    {
+        GameObject gObj = Instantiate(Prefab_PanelResult, Layout_OpenPlayer);
+        Panel_OpenPlayer openPlayer = gObj.GetComponent<Panel_OpenPlayer>();
+        openPlayer.PanelNetId = netId;
+
+        if (!PlayerPanels.ContainsKey(netId))
+        {
+            PlayerPanels[netId] = openPlayer;
+        }
+
+        UpdateOpenPlayer(netId);
+    }
+
+    private void UpdateOpenPlayer(uint netId)
+    {
+        UpdatePlayerNickName(netId);
+        UpdatePlayerIcon(netId);
+        UpdatePlayerCard(netId);        
+    }
+
+    private void UpdatePlayerNickName(uint netId)
+    {
+        if (PlayerPanels.ContainsKey(netId))
+        {
+            PlayerPanels[netId].UpdatePlayerName();
+        }
+    }
+    private void UpdatePlayerIcon(uint netId)
+    {
+        if (PlayerPanels.ContainsKey(netId))
+        {
+            PlayerPanels[netId].UpdatePlayerIcon();
+        }
+    }
+    private void UpdatePlayerCard(uint netId)
+    {
+        if (PlayerPanels.ContainsKey(netId))
+        {
+            PlayerPanels[netId].UpdatePlayerCard();
+        }
+    }
+
+
 
     private void SetWinLoseText(bool isWin)
     {
@@ -46,18 +102,23 @@ public class UI_WinLose : MonoBehaviour
 
         UIManager.Instance.HideUIWithPooling(UIPrefab.WinLoseUI);
         UI_WaitForOther.Show("다른 플레이어의 결과 확인을 기다리는 중..");
-
-
-        /*
-        MyPlayerGameData playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
-        playerGameData.CmdSendCheckStageResult();
-        */
     }
 
     public static void Show(bool isWin)
     {
         UIManager.Instance.ShowUI(UIPrefab.WinLoseUI);
         UI_WinLose winLoseUI = UIManager.Instance.GetActiveUI(UIPrefab.WinLoseUI).GetComponent<UI_WinLose>();
+
+        winLoseUI.ClearPlayerInfo();
+
+        foreach(var kvp in NetworkClient.spawned)
+        {
+            if(kvp.Value.TryGetComponent(out MyPlayer player))
+            {
+                winLoseUI.SetOpenPlayerInfo(kvp.Key);
+            }
+        }
+
         winLoseUI.SetWinLoseText(isWin);
     }
 }

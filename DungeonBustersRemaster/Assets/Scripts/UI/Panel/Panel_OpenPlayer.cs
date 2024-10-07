@@ -1,3 +1,4 @@
+using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -12,28 +13,43 @@ public class Panel_OpenPlayer : MonoBehaviour
     [SerializeField] TextMeshProUGUI Text_CardNum;
     [SerializeField] GameObject Img_X;
 
-    //여기에 필요한거
-    //1. 플레이어 정보(플레이어 아이콘(MyPlayer), 플레이어 이름(MyPlayer), 플레이어 색깔(MyPlayer)
-    //, 제출한 카드번호(MyPlayerGameData)(이거 SyncVar로 바꿔야겠네?), 공격성공여부(?))
+    private uint panelNetId;
+    private MyPlayer playerData;
+    private MyPlayerGameData playerGameData;
     
-    public void SetCharacterIcon(int characterIndex)
+    public uint PanelNetId
     {
-        Img_CharacterIcon.sprite = SpriteManager.Instance.GetCharacterIconSprite(characterIndex);
+        get { return panelNetId;}
+        set
+        {
+            panelNetId = value;
+            RegisterPlayerData(panelNetId);
+        }
     }
 
-    public void SetPlayerName(string nickname)
+    public void UpdatePlayerName()
     {
-        Text_PlayerName.text = nickname;
+        Text_PlayerName.text = playerData.Nickname;
     }
 
-    public void SetSelectedCard(int selectedCardNum, PlayerColor playerColor)
+    public void UpdatePlayerIcon()
     {
-        Img_Card.sprite = SpriteManager.Instance.GetCardSprite(playerColor);
-        Text_CardNum.text = selectedCardNum.ToString();
+        Img_CharacterIcon.sprite = SpriteManager.Instance.GetCharacterIconSprite(playerData.CharacterIndex);
     }
 
-    public void SetAttackSuccess(bool isAttackSuccess)
+    public void UpdatePlayerCard()
     {
-        Img_X.SetActive(isAttackSuccess);
+        Img_Card.sprite = SpriteManager.Instance.GetCardSprite(playerData.PlayerColor);
+        Text_CardNum.text = playerGameData.SubmittedCardNum.ToString();
+        Img_X.SetActive(!playerGameData.IsAttackSuccess);
+    }
+
+    private void RegisterPlayerData(uint netId)
+    {
+        if(NetworkClient.spawned.TryGetValue(netId, out NetworkIdentity identity))
+        {
+            playerData = identity.GetComponent<MyPlayer>();
+            playerGameData = identity.GetComponent<MyPlayerGameData>();
+        }
     }
 }

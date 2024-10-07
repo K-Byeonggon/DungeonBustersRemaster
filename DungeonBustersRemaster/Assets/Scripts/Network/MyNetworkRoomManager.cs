@@ -36,46 +36,65 @@ public class MyNetworkRoomManager : NetworkRoomManager
 
 
 
+    //Server
     public override void OnServerChangeScene(string newSceneName)
     {
+        MethodName.DebugLog();
         base.OnServerChangeScene(newSceneName);
-        MethodName.DebugLog();
-        //이거만 제대로 동작하는듯?
+        OnChangeScene(newSceneName);
     }
 
-    public override void OnServerSceneChanged(string newSceneName)
-    {
-        base.OnServerSceneChanged(newSceneName);
-        MethodName.DebugLog();
-    }
-
+    //Server
     public override void OnRoomServerSceneChanged(string sceneName)
     {
-        base.OnRoomServerSceneChanged(sceneName);
         MethodName.DebugLog();
-
+        base.OnRoomServerSceneChanged(sceneName);
     }
 
-    public override void OnRoomClientSceneChanged()
+    //Server
+    public override void OnServerSceneChanged(string newSceneName)
     {
-        if (Utils.IsSceneActive(GameplayScene))
-        {
-            UIManager.Instance.HideUIWithTimer(UIPrefab.SelectCharacterUI);
-            UIManager.Instance.HideUIWithTimer(UIPrefab.ChangeNameUI);
-            UIManager.Instance.HideUIWithTimer(UIPrefab.RoomUI);
-        }
+        MethodName.DebugLog();
+        base.OnServerSceneChanged(newSceneName);
     }
 
+
+    //Server, Client
+    public override void OnClientConnect()
+    {
+        MethodName.DebugLog();
+        base.OnClientConnect();
+        Debug.Log("클라이언트가 서버와 연결됨.");
+    }
+
+    //Server, Client
     public override void OnClientChangeScene(string newSceneName, SceneOperation sceneOperation, bool customHandling)
     {
+        MethodName.DebugLog();
         base.OnClientChangeScene(newSceneName, sceneOperation, customHandling);
+        OnChangeScene(newSceneName);
     }
 
+    // Client
+    public override void OnClientSceneChanged()
+    {
+        MethodName.DebugLog();
+
+        base.OnClientSceneChanged();
 
 
+    }
 
+    // Client
+    public override void OnRoomClientSceneChanged()
+    {
+        MethodName.DebugLog();
+    }
+
+    //Server
     public override GameObject OnRoomServerCreateRoomPlayer(NetworkConnectionToClient conn)
     {
+        MethodName.DebugLog();
         GameObject newRoomGameObject = Instantiate(roomPlayerPrefab.gameObject, Vector3.zero, Quaternion.identity);
         MyNetworkRoomPlayer myRoomPlayer = newRoomGameObject.GetComponent<MyNetworkRoomPlayer>();
         //Lobby Scene에서 캐릭터를 고른다면, 여기에서 MyNetworkManager 등에 저장된 캐릭터index를 넣어줄것
@@ -83,14 +102,7 @@ public class MyNetworkRoomManager : NetworkRoomManager
         return newRoomGameObject;
     }
 
-
-    public override void OnRoomServerAddPlayer(NetworkConnectionToClient conn)
-    {
-        base.OnRoomServerAddPlayer(conn);
-        MethodName.DebugLog();
-    }
-
-
+    //Server
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {
         base.OnServerAddPlayer(conn);
@@ -98,76 +110,43 @@ public class MyNetworkRoomManager : NetworkRoomManager
         //MyNetworkRoomPlayer에서 Start가 완료될 때까지 대기해야함.
     }
 
-    public override void OnRoomServerPlayersReady()
-    {
-        base.OnRoomServerPlayersReady();
-    }
+    //MyNetworkRoomPlayer: OnStartClient
 
-    public override void OnRoomServerPlayersNotReady()
-    {
-        base.OnRoomServerPlayersNotReady();
-    }
-
-    public override void OnServerDisconnect(NetworkConnectionToClient conn)
-    {
-        MethodName.DebugLog();
-
-        base.OnServerDisconnect(conn);
-
-    }
-
-    public override void OnRoomServerDisconnect(NetworkConnectionToClient conn)
-    {
-        MethodName.DebugLog();
-
-        base.OnRoomServerDisconnect(conn);
-        OnRoomPlayersUpdated?.Invoke();
-    }
+    //MyNetworkRoomPlayer: OnClientEnterRoom
 
     public void NotifyPlayerInitialized()
     {
+        MethodName.DebugLog();
         OnRoomPlayersUpdated?.Invoke();
     }
 
 
-    public override void OnClientConnect()
-    {
-        base.OnClientConnect();
-        Debug.Log("클라이언트가 서버와 연결됨.");
+    // ######################################## GamePlay Scene ########################################
 
-        UIManager.Instance.HideUIWithTimer(UIPrefab.SetPlayerNumUI);
-        UIManager.Instance.HideUIWithTimer(UIPrefab.ClientConnectUI);
-        UIManager.Instance.HideUIWithTimer(UIPrefab.LobbyUI);
-        UIManager.Instance.ShowUI(UIPrefab.RoomUI);
+    //Server
+    public override void OnRoomServerPlayersReady()
+    {
+        MethodName.DebugLog();
+        base.OnRoomServerPlayersReady();
     }
 
-    public override void OnClientDisconnect()
-    {
-        base.OnClientDisconnect();
-        Debug.Log("클라이언트가 서버와의 연결에 실패함.");
+    //Server: OnServerChangeScene
 
-        if (Utils.IsSceneActive(offlineScene))
-        {
-            UIManager.Instance.ShowUI(UIPrefab.ClientDisconnectUI);
-        }
+    //Server, Client: OnClientChangeScene
 
-        if (Utils.IsSceneActive(onlineScene))
-        {
-            UIManager.Instance.HideUIWithTimer(UIPrefab.SelectCharacterUI);
-            UIManager.Instance.HideUIWithTimer(UIPrefab.RoomUI);
-            UIManager.Instance.ShowUI(UIPrefab.LobbyUI);
-            UI_Notify.Show("호스트가 연결을 끊어 종료되었습니다.");
-            //offlineScene으로
-        }
+    //Server: OnRoomServerSceneChanged
 
-        if (Utils.IsSceneActive(GameplayScene))
-        {
-            //UIManager.Instance.HideUIWithTimer(UIPrefab.GameSceneUI);
-        }
-    }
+    //Server: OnServerSceneChanged
+
+    //Client : OnClientSceneChanged
 
 
-    //GameScene에 GamePlayer 생성
+    //Server, Client : OnRoomClientSceneChanged
+
+
+
+
+    //Server
     public override GameObject OnRoomServerCreateGamePlayer(NetworkConnectionToClient conn, GameObject roomPlayer)
     {
         MethodName.DebugLog();
@@ -189,21 +168,10 @@ public class MyNetworkRoomManager : NetworkRoomManager
         return gamePlayer;
     }
 
-    //Server. GamePlayScene에 플레이어가 생성완료되면 불린다. 여기서 플레이어를 체크해서 게임을 시작하자.
-    public override bool OnRoomServerSceneLoadedForPlayer(NetworkConnectionToClient conn, GameObject roomPlayer, GameObject gamePlayer)
-    {
-        Debug.Log(roomSlots.Count);
-        if(gamePlayerCount == roomSlots.Count)
-        {
-            OnAllGamePlayerLoaded?.Invoke(gamePlayerCount);
-        }
-
-        return base.OnRoomServerSceneLoadedForPlayer(conn, roomPlayer, gamePlayer);
-    }
-
     [Server]
     private void InitializeGamePlayer(NetworkConnectionToClient conn, MyPlayer myGamePlayer)
     {
+        MethodName.DebugLog();
         myGamePlayer.InitializeCharacterIndex(conn);
         myGamePlayer.InitializeNickname(conn);
         myGamePlayer.InitializePlayerColor(gamePlayerCount);
@@ -212,18 +180,73 @@ public class MyNetworkRoomManager : NetworkRoomManager
     [Server]
     private void InitializePlayerGameData(NetworkConnectionToClient conn, MyPlayerGameData myGameData)
     {
+        MethodName.DebugLog();
         myGameData.InitializeHands();
         myGameData.InitializeGems();
         myGameData.InitializeUsedCards();
     }
 
 
-
-    public override void OnClientSceneChanged()
+    //Server. GamePlayScene에 플레이어가 생성완료되면 불린다. 여기서 플레이어를 체크해서 게임을 시작하자.
+    public override bool OnRoomServerSceneLoadedForPlayer(NetworkConnectionToClient conn, GameObject roomPlayer, GameObject gamePlayer)
     {
-        if (Utils.IsSceneActive(GameplayScene))
+        MethodName.DebugLog();
+        Debug.Log(roomSlots.Count);
+        if (gamePlayerCount == roomSlots.Count)
         {
-            //UIManager.Instance.ShowUI(UIPrefab.GameSceneUI);
+            OnAllGamePlayerLoaded?.Invoke(gamePlayerCount);
+        }
+
+        return base.OnRoomServerSceneLoadedForPlayer(conn, roomPlayer, gamePlayer);
+    }
+
+
+
+    private void OnChangeScene(string sceneName)
+    {
+        //씬이 미리 바뀌기 전에 씬 이름으로 UI활성화하는 느낌.
+
+        //Lobby Scene
+        if (sceneName == offlineScene)
+        {
+            //LobbySceneUI 활성화
+            UIManager.Instance.ShowUI(UIPrefab.LobbyUI);
+
+            //RoomSceneUI 숨기기
+            UIManager.Instance.HideUIWithTimer(UIPrefab.SelectCharacterUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.ChangeNameUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.RoomUI);
+
+            //GameSceneUI 숨기기
+            UIManager.Instance.HideUIWithTimer(UIPrefab.StageInfoUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.MonsterInfoUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.BonusGemsUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.TimerUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.CardPanelUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.PlayerInfoUI);
+        }
+
+        //Room Scene
+        if (sceneName == onlineScene)
+        {
+            UIManager.Instance.ShowUI(UIPrefab.RoomUI);
+
+            //LobbySceneUI 숨기기
+            UIManager.Instance.HideUIWithTimer(UIPrefab.LobbyUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.ClientConnectUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.SetPlayerNumUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.ClientDisconnectUI);
+        }
+
+        //GamePlayer Scene
+        if (sceneName == GameplayScene)
+        {
+            //RoomSceneUI 숨기기
+            UIManager.Instance.HideUIWithTimer(UIPrefab.SelectCharacterUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.ChangeNameUI);
+            UIManager.Instance.HideUIWithTimer(UIPrefab.RoomUI);
+
+            //GameSceneUI 활성화
             UIManager.Instance.ShowUI(UIPrefab.StageInfoUI);
             UIManager.Instance.ShowUI(UIPrefab.MonsterInfoUI);
             UIManager.Instance.ShowUI(UIPrefab.BonusGemsUI);
@@ -231,9 +254,79 @@ public class MyNetworkRoomManager : NetworkRoomManager
             UIManager.Instance.ShowUI(UIPrefab.CardPanelUI);
             UIManager.Instance.ShowUI(UIPrefab.PlayerInfoUI);
         }
-        base.OnClientSceneChanged();
-        Debug.Log("이건 불리는지 확인");
     }
+
+
+
+
+
+
+
+
+    public override void OnRoomServerAddPlayer(NetworkConnectionToClient conn)
+    {
+        MethodName.DebugLog();
+        base.OnRoomServerAddPlayer(conn);
+    }
+
+
+
+    public override void OnRoomServerPlayersNotReady()
+    {
+        MethodName.DebugLog();
+        base.OnRoomServerPlayersNotReady();
+    }
+
+    public override void OnServerDisconnect(NetworkConnectionToClient conn)
+    {
+        MethodName.DebugLog();
+
+        base.OnServerDisconnect(conn);
+
+    }
+
+    public override void OnRoomServerDisconnect(NetworkConnectionToClient conn)
+    {
+        MethodName.DebugLog();
+
+        base.OnRoomServerDisconnect(conn);
+        OnRoomPlayersUpdated?.Invoke();
+    }
+
+
+
+    public override void OnClientDisconnect()
+    {
+        MethodName.DebugLog();
+        base.OnClientDisconnect();
+        Debug.Log("클라이언트가 서버와의 연결에 실패함.");
+
+        if (Utils.IsSceneActive(offlineScene))
+        {
+            UIManager.Instance.ShowUI(UIPrefab.ClientDisconnectUI);
+        }
+
+        if (Utils.IsSceneActive(onlineScene))
+        {
+            //offlineScene으로
+            UnityEngine.SceneManagement.SceneManager.LoadScene(offlineScene);
+
+            UI_Notify.Show("호스트가 연결을 끊어 종료되었습니다.");
+        }
+
+        if (Utils.IsSceneActive(GameplayScene))
+        {
+            //UIManager.Instance.HideUIWithTimer(UIPrefab.GameSceneUI);
+        }
+    }
+
+
+
+
+
+
+
+
 
 
     #region tools

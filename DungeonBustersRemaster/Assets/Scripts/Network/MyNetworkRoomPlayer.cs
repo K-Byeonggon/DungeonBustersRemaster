@@ -26,7 +26,7 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
 
     public override void OnStartClient()
     {
-        Debug.Log("StartClient는 언제임");
+        MethodName.DebugLog();
         base.OnStartClient();
     }
 
@@ -38,7 +38,7 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
 
     public override void OnClientEnterRoom()
     {
-        Debug.Log("ClientEnterRoom은 언제임");
+        MethodName.DebugLog();
         base.OnClientEnterRoom();
     }
 

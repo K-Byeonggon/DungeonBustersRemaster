@@ -64,11 +64,6 @@ public class Panel_GamePlayer : MonoBehaviour
         List<int> usedCards = playerGameData.UsedCards;
         usedCards.Sort();
 
-        foreach(int card in usedCards)
-        {
-            Debug.Log($"<color=red> UsedCard {card} </color>");
-        }
-
         //PlayerColor에 맞는 카드 오브젝트를 UsedCard의 숫자에 맞게 생성
         for (int i = 0; i < usedCards.Count; i++)
         {
@@ -76,6 +71,9 @@ public class Panel_GamePlayer : MonoBehaviour
             Content_Card usedCard = gObj.GetComponent<Content_Card>();
             usedCard.SetCardNum(usedCards[i]);
             usedCard.SetCardImg(playerData.PlayerColor);
+
+            //UsedCard는 3개까지만 생성(스테이지당 4번 플레이)
+            if(i == 2) { break; }
         }
     }
 
@@ -97,6 +95,9 @@ public class Panel_GamePlayer : MonoBehaviour
             Content_Card usedCard = gObj.GetComponent<Content_Card>();
             usedCard.SetCardNum(tempUsedCards[i]);
             usedCard.SetCardImg(playerData.PlayerColor);
+
+            //UsedCard는 3개까지만 생성(스테이지당 4번 플레이)
+            if (i == 2) { break; }
         }
     }
 

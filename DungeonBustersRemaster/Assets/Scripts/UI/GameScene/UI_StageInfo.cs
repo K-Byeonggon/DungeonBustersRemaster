@@ -8,22 +8,6 @@ public class UI_StageInfo : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI Text_Dungeon;
     [SerializeField] TextMeshProUGUI Text_Stage;
-    [SerializeField] Button Btn_Config;
-
-    private void OnEnable()
-    {
-        Btn_Config.onClick.AddListener(OnClick_Config);
-    }
-
-    private void OnDisable()
-    {
-        Btn_Config.onClick.RemoveListener(OnClick_Config);
-    }
-
-    private void OnClick_Config()
-    {
-
-    }
 
     private void SetDungeonInfo(int currentDungeon)
     {

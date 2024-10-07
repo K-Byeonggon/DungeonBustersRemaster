@@ -46,6 +46,7 @@ public class MonsterSpawner : MonoBehaviour
             monsterCtrl.ResetMonster();
 
             monsterCtrl.SetMonster(monsterDataId);
+            monsterCtrl.SetAnimator(AnimationState.Idle);
             monster.SetActive(true);
         }
         else
@@ -57,6 +58,7 @@ public class MonsterSpawner : MonoBehaviour
                 MonsterController monsterCtrl = monster.GetComponent<MonsterController>();
                 
                 monsterCtrl.SetMonster(monsterDataId);
+                monsterCtrl.SetAnimator(AnimationState.Idle);
                 monster.SetActive(true);
             }
             else
@@ -65,6 +67,8 @@ public class MonsterSpawner : MonoBehaviour
                 return;
             }
         }
+
+
     }
 
 }

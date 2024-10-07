@@ -34,11 +34,13 @@ public class UI_CardPanel : MonoBehaviour
     public void Initialize()
     {
         playerGameData = NetworkClient.localPlayer.GetComponent<MyPlayerGameData>();
+        MyPlayer playerData = NetworkClient.localPlayer.GetComponent<MyPlayer>();
 
         isSubmit = true;
         Text_SubmitCard.text = "카드 제출";
         Img_Submitted.gameObject.SetActive(false);
         Text_CardNum.text = string.Empty;
+        Img_SelectedCard.sprite = SpriteManager.Instance.GetCardSprite(playerData.PlayerColor);
     }
 
     private void OnClick_SelectCard()

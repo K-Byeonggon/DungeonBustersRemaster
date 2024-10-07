@@ -412,35 +412,6 @@ public class GameLogicManager : NetworkBehaviour
         UI_MonsterInfo.ClearMonsterInfo();
         //MonsterSpawner의 Monster도 잠깐 꺼야함. 아니면 Defeated 애니메이션 끝나고 알아서 꺼주든가.
     }
-
-    [Server]
-    private async UniTask PlayStageAnimation(float delay)
-    {
-        RpcClearMonsterInfoBeforeAnimation();
-
-        RpcSetAllPlayerAnimation(AnimationState.Running);
-
-        await UniTask.Delay(TimeSpan.FromSeconds(delay));
-
-        RpcSetAllPlayerAnimation(AnimationState.Idle);
-
-        StageRemainedTask();
-    }
-
-    [Server]
-    private void StageRemainedTask()
-    {
-        ServerExecuteStageStart();
-
-        RpcExecuteStageStart();
-
-        if (isServer)
-        {
-            RpcSetPhase(GamePhase.CardSubmission);
-
-        }
-    }
-
     [Server]
     private void ServerExecuteStageStart()
     {
@@ -448,19 +419,11 @@ public class GameLogicManager : NetworkBehaviour
         submittedPlayerCount = 0;
         RpcInitializePlayerSubmittedCard();
 
-        //Deque는 서버에서, 적용은 Rpc로
-        currentMonsterDataId = currentDungeonMonsterIds.Dequeue();
-        RpcSetCurrentMonsterDataId(currentMonsterDataId);
-    }
-    [ClientRpc]
-    private void RpcSetCurrentMonsterDataId(int serverMonsterDataId)
-    {
-        //몬스터 ID변경 (UI 변경)
-        CurrentMonsterDataId = serverMonsterDataId;
+        RpcClearMonsterInfoBeforeAnimation();
 
-        //몬스터 스폰
-        monsterSpawner.SpawnMonster(serverMonsterDataId);
+
     }
+
 
     [ClientRpc]
     private void RpcInitializePlayerSubmittedCard()
@@ -472,12 +435,45 @@ public class GameLogicManager : NetworkBehaviour
         cardPanelUI.Initialize();
     }
 
+    [Server]
+    private async UniTask PlayStageAnimation(float delay)
+    {
+        ServerExecuteStageStart();
+
+        RpcSetAllPlayerAnimation(AnimationState.Running);
+
+        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+
+        RpcSetAllPlayerAnimation(AnimationState.Idle);
+
+
+        StageRemainedTask();
+    }
+
+    [Server]
+    private void StageRemainedTask()
+    {
+        //Deque는 서버에서, 적용은 Rpc로
+        currentMonsterDataId = currentDungeonMonsterIds.Dequeue();
+        RpcSetCurrentMonsterDataId(currentMonsterDataId);
+
+        if (isServer)
+        {
+            RpcSetPhase(GamePhase.CardSubmission);
+        }
+    }
 
     [ClientRpc]
-    private void RpcExecuteStageStart()
+    private void RpcSetCurrentMonsterDataId(int serverMonsterDataId)
     {
+        //몬스터 ID변경 (UI 변경)
+        CurrentMonsterDataId = serverMonsterDataId;
 
+        //몬스터 스폰
+        monsterSpawner.SpawnMonster(serverMonsterDataId);
     }
+
+
 
     #endregion
 
@@ -576,6 +572,9 @@ public class GameLogicManager : NetworkBehaviour
             }
         }
 
+        //몬스터 공격 애니메이션 재생
+        RpcSetMonsterAnimation(AnimationState.Attack);
+
         await UniTask.Delay(TimeSpan.FromSeconds(delay));
 
         CalculationRemainedTask();
@@ -617,9 +616,36 @@ public class GameLogicManager : NetworkBehaviour
     {
         //UI상으로 모든 플레이어가 결과 확인 버튼을 눌렀으면.
 
+        PlayAnimationAfterCheckedResult(3.0f).Forget();
+    }
+
+    [Server]
+    private async UniTask PlayAnimationAfterCheckedResult(float delay)
+    {
+        if (isWin)
+        {
+            RpcSetAllPlayerAnimation(AnimationState.Win);
+            RpcSetMonsterAnimation(AnimationState.Defeated);
+        }
+        else
+        {
+            RpcSetAllPlayerAnimation(AnimationState.Defeated);
+            RpcSetMonsterAnimation(AnimationState.Win);
+        }
+
+        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+
+        RpcSetAllPlayerAnimation(AnimationState.Idle);
+        RpcTurnOffMonster();
+
         RpcSetPhase(GamePhase.RewardDistribution);
     }
 
+    [ClientRpc]
+    private void RpcTurnOffMonster()
+    {
+        monsterSpawner.Monster.gameObject.SetActive(false);
+    }
 
     [ClientRpc]
     private void RpcDebugResult(int sumOfAttack, int monsterHP)

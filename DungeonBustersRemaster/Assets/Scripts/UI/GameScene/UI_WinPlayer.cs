@@ -8,9 +8,13 @@ using UnityEngine.UI;
 public class UI_WinPlayer : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI Text_Message;
-    [SerializeField] Image Img_PlayerIcon;
-    [SerializeField] TextMeshProUGUI Text_PlayerName;
+    [SerializeField] Transform Layout_WinPlayer;
     [SerializeField] Button Btn_Confirm;
+
+    [Header("WinPlayerPrefab")]
+    [SerializeField] GameObject Prefab_PanelWinPlayer;
+
+    private Dictionary<uint, Panel_WinPlayer> PlayerPanels = new Dictionary<uint, Panel_WinPlayer>();
 
     private void OnEnable()
     {
@@ -24,27 +28,47 @@ public class UI_WinPlayer : MonoBehaviour
 
     private void SetPanelInfo(uint winPlayerNetId)
     {
-        MyPlayer playerData = NetworkClient.spawned[winPlayerNetId].GetComponent<MyPlayer>();
+        //이론상 5명의 플레이어가 동점일 수도 있지만, UI상으로는 한꺼번에 3명이 한계임.
+        GameObject gObj = Instantiate(Prefab_PanelWinPlayer, Layout_WinPlayer);
+        Panel_WinPlayer winPlayer = gObj.GetComponent<Panel_WinPlayer>();
+        winPlayer.PlayerNetId = winPlayerNetId;
 
-        UpdateMessage(winPlayerNetId);
-        UpdatePlayerIcon(playerData.CharacterIndex);
-        UpdatePlayerName(playerData.Nickname);
+        if (!PlayerPanels.ContainsKey(winPlayerNetId))
+        {
+            PlayerPanels[winPlayerNetId] = winPlayer;
+        }
+
+        UpdateWinPlayer(winPlayerNetId);
     }
 
-    private void UpdatePlayerIcon(int charcaterIndex)
+    private void UpdateWinPlayer(uint winPlayerNetId)
     {
-        Img_PlayerIcon.sprite = SpriteManager.Instance.GetCharacterIconSprite(charcaterIndex);
+        UpdatePlayerNickname(winPlayerNetId);
+        UpdatePlayerIcon(winPlayerNetId);
     }
 
-    private void UpdatePlayerName(string nickname)
+    private void UpdatePlayerNickname(uint winPlayerNetId)
     {
-        Text_PlayerName.text = nickname;
+        if (PlayerPanels.ContainsKey(winPlayerNetId))
+        {
+            PlayerPanels[winPlayerNetId].UpdatePlayerName();
+        }
     }
 
-    private void UpdateMessage(uint netId)
+    private void UpdatePlayerIcon(uint winPlayerNetId)
+    {
+        if(PlayerPanels.ContainsKey(winPlayerNetId))
+        {
+            PlayerPanels[winPlayerNetId].UpdatePlayerIcon();
+        }
+    }
+
+
+
+    private void UpdateMessage(List<uint> winPlayerNetIds)
     {
         //우승자의 클라이언트
-        if(NetworkClient.localPlayer.netId == netId)
+        if(winPlayerNetIds.Contains(NetworkClient.localPlayer.netId))
         {
             Text_Message.text = "우승!\n가장 비열했습니다!";
         }
@@ -60,11 +84,27 @@ public class UI_WinPlayer : MonoBehaviour
         //로비로
     }
 
-    public static void Show(uint winPlayerNetId)
+    private void ClearPlayerInfo()
+    {
+        foreach(Transform player in Layout_WinPlayer)
+        {
+            Destroy(player.gameObject);
+        }
+    }
+
+    public static void Show(List<uint> winPlayerNetId)
     {
         UIManager.Instance.ShowUI(UIPrefab.WinPlayerUI);
         UI_WinPlayer winPlayerUI = UIManager.Instance.GetActiveUI(UIPrefab.WinPlayerUI).GetComponent<UI_WinPlayer>();
 
-        winPlayerUI.SetPanelInfo(winPlayerNetId);
+        winPlayerUI.ClearPlayerInfo();
+
+        winPlayerUI.UpdateMessage(winPlayerNetId);
+
+        foreach (uint netId  in winPlayerNetId)
+        {
+            winPlayerUI.SetPanelInfo(netId);
+        }
+
     }
 }

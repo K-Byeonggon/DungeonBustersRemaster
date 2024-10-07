@@ -95,8 +95,11 @@ public class UI_GameResult : MonoBehaviour
         //이부분은 다른 플레이어를 기다릴 필요가 없다.
         //클라별로 그냥 갱신. 그러면 TargetRpc를 써야겠군.
 
-        GameLogicManager.Instance.CmdRequestSetPhaseGameEnd();
+        MyPlayer player = NetworkClient.localPlayer.GetComponent<MyPlayer>();
 
+        player.CmdRequestSetPhaseGameEnd();
+
+        UIManager.Instance.HideUIWithTimer(UIPrefab.GameResultUI);
 
     }
 

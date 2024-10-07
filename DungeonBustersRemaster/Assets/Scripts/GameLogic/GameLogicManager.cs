@@ -74,6 +74,8 @@ public class GameLogicManager : NetworkBehaviour
 
     public List<int> BonusGems => bonusGems.ToList<int>();
 
+    //플레이어의 최종 점수들을 저장. 결과창 띄우는데 사용.
+    private Dictionary<uint, int> playerTotalPoints = new Dictionary<uint, int>();
 
     #region Property
 
@@ -793,11 +795,6 @@ public class GameLogicManager : NetworkBehaviour
         UI_GameResult.Show();
     }
 
-    [Command(requiresAuthority = false)]
-    public void CmdRequestSetPhaseGameEnd()
-    {
-        TargetSetPhaseGameEnd(connectionToClient);
-    }
 
     [TargetRpc]
     public void TargetSetPhaseGameEnd(NetworkConnection target)
@@ -825,8 +822,34 @@ public class GameLogicManager : NetworkBehaviour
     private void ExecuteGameEnd()
     {
         //우승자 보여주고 버튼 누르면 로비로
-        uint netId = 0;
-        UI_WinPlayer.Show(netId);
+        RegisterTotalPoint();
+        
+        int maxPoint = playerTotalPoints.Values.Max();
+        List<uint> winPlayerNetId = playerTotalPoints.Where(x => x.Value == maxPoint).Select(x => x.Key).ToList();
+
+        UI_WinPlayer.Show(winPlayerNetId);
+    }
+
+    [Client]
+    private void RegisterTotalPoint()
+    {
+        playerTotalPoints.Clear();
+        foreach (var kvp in NetworkClient.spawned)
+        {
+            if (kvp.Value.TryGetComponent(out MyPlayerGameData playerGameData))
+            {
+                int totalPoint = 0;
+
+                foreach (int count in playerGameData.Gems)
+                {
+                    totalPoint += count;
+                }
+
+                totalPoint += playerGameData.Gems.Min() * 3;
+
+                playerTotalPoints[kvp.Key] = totalPoint;
+            }
+        }
     }
 
     #endregion

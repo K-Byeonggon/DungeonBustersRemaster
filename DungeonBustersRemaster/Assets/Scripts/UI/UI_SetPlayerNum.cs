@@ -34,7 +34,7 @@ public class UI_SetPlayerNum : MonoBehaviour
 
     private void OnClick_3Players()
     {
-        MyNetworkRoomManager.Instance.minPlayers = 3;
+        //MyNetworkRoomManager.Instance.minPlayers = 3;
         MyNetworkRoomManager.Instance.StartHost();
     }
 

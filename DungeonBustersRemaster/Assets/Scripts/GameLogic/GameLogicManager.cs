@@ -80,6 +80,7 @@ public class GameLogicManager : NetworkBehaviour
     private Dictionary<uint, int> playerTotalPoints = new Dictionary<uint, int>();
 
     #region Property
+    public int CurrentDungeon => currentDungeon;
 
     public int CurrentMonsterDataId
     {
@@ -888,8 +889,36 @@ public class GameLogicManager : NetworkBehaviour
         }
     }
 
+    #region Dungeon End
     private void ExecuteDungeonEnd()
     {
+        //던전 클리어 UI 띄우기
+
+        ShowDungeonClear(2.5f).Forget();
+
+    }
+
+    [Server]
+    private async UniTask ShowDungeonClear(float delay)
+    {
+        RpcShowDungeonClear();
+
+        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+
+        DungeonEndRemainedTask();
+    }
+
+    [ClientRpc]
+    private void RpcShowDungeonClear()
+    {
+        UI_DungeonClear.Show();
+    }
+
+    [Server]
+    private void DungeonEndRemainedTask()
+    {
+        RpcHideUIWithPooling(UIPrefab.DungeonClearUI);
+
         //던전 3개 다돌았으면 SetPhase(GameEnd) 아니면 던전 번호 올려서 SetPhase(DungeonStart)로
         if (currentDungeon < 1) //임시로 1
         {
@@ -901,17 +930,37 @@ public class GameLogicManager : NetworkBehaviour
         }
     }
 
+    #endregion
+
     #region Point Calculation
     private void ExecutePointCalculation()
     {
-        RpcShowGameResultUI();
+        //게임 종료 UI 띄우기
+        ShowGameOver(3f).Forget();
 
     }
+    [ClientRpc]
+    private void RpcShowGameOverUI()
+    {
+        UIManager.Instance.ShowUI(UIPrefab.GameOverUI);
+    }
+
+    [Server]
+    private async UniTask ShowGameOver(float delay)
+    {
+        RpcShowGameOverUI();
+
+        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+
+        RpcShowGameResultUI();
+    }
+
 
 
     [ClientRpc]
     private void RpcShowGameResultUI()
     {
+        UIManager.Instance.HideUIWithTimer(UIPrefab.GameOverUI);
         UI_GameResult.Show();
     }
 

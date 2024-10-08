@@ -8,19 +8,21 @@ using UnityEngine;
 
 public class MonsterDataManager : Singleton<MonsterDataManager>
 {
-    public string jsonFilePath = "Assets/Resources/Monsters.json";
     public Dictionary<int, Monster> LoadedMonsters = new Dictionary<int, Monster>();
 
     private Dictionary<string, GameObject> monsterPrefabs = new Dictionary<string, GameObject>();
-    private Dictionary<int, GameObject> monsterPool = new Dictionary<int, GameObject>();
 
     #region JSON Data
 
     public async UniTask LoadMonsterData()
     {
-        if (File.Exists(jsonFilePath))
+        // Resources 폴더에서 TextAsset으로 JSON 파일을 로드
+        TextAsset jsonFile = Resources.Load<TextAsset>("Monsters");
+
+        if (jsonFile != null)
         {
-            string jsonData = File.ReadAllText(jsonFilePath);
+            // TextAsset의 텍스트 데이터를 읽어와서 JSON으로 변환
+            string jsonData = jsonFile.text;
             MonsterList monsterList = JsonConvert.DeserializeObject<MonsterList>(jsonData);
 
             if (monsterList == null || monsterList.monsters == null)
@@ -30,7 +32,7 @@ public class MonsterDataManager : Singleton<MonsterDataManager>
             }
 
             LoadedMonsters.Clear();
-            foreach(Monster monster in monsterList.monsters)
+            foreach (Monster monster in monsterList.monsters)
             {
                 LoadedMonsters[monster.DataId] = monster;
             }
@@ -41,6 +43,7 @@ public class MonsterDataManager : Singleton<MonsterDataManager>
         {
             Debug.LogError("Json파일을 찾을 수 없습니다.");
         }
+
         await UniTask.Yield();
     }
 

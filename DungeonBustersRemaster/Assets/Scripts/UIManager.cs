@@ -38,6 +38,8 @@ public enum UIPrefab
     WaitForOtherUI,
     LoseGemsUI,
     GetRewardUI,
+    DungeonClearUI,
+    GameOverUI,
     GameResultUI,
     WinPlayerUI,
 

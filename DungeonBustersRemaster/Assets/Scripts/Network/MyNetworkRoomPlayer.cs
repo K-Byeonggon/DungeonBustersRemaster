@@ -17,8 +17,12 @@ public class MyNetworkRoomPlayer : NetworkRoomPlayer
         base.Start();
 
         string defalutName = $"Player{index + 1}";
-        CmdChangeCharacterIndex(0);
-        CmdChangeNickName(defalutName);
+
+        if (isLocalPlayer)
+        {
+            CmdChangeCharacterIndex(0);
+            CmdChangeNickName(defalutName);
+        }
 
         NotifyInitializedNextFrame().Forget();
     }

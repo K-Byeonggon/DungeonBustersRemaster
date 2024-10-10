@@ -34,6 +34,8 @@ public enum UIPrefab
     TimerUI,
     CardPanelUI,
     PlayerInfoUI,
+    SelectCardUI,
+    WinLoseUI,
     GetBonusUI,
     WaitForOtherUI,
     LoseGemsUI,
@@ -42,12 +44,8 @@ public enum UIPrefab
     GameOverUI,
     GameResultUI,
     WinPlayerUI,
-
-    SelectCardUI,
     Content_Card,
-    Content_Gem,
-    WinLoseUI
-
+    Content_Gem
 }
 
 public static class UIPrefabExtensions

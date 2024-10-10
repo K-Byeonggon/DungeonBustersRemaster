@@ -45,7 +45,6 @@ public class GameLogicManager : NetworkBehaviour
 
     private int gamePlayerCount;
 
-
     private GamePhase currentPhase = GamePhase.BeforeGameStart;
 
 
@@ -242,7 +241,6 @@ public class GameLogicManager : NetworkBehaviour
 
     }
 
-
     [ClientRpc]
     private void RpcSetPhase(GamePhase newPhase)
     {
@@ -360,12 +358,9 @@ public class GameLogicManager : NetworkBehaviour
     [Server]
     private void ExecuteGameStart()
     {
-        Debug.Log("Game Start Phase");
-
         ServerInitializeGame();
 
         RpcSetPhase(GamePhase.DungeonStart);
-
     }
 
 
@@ -387,12 +382,7 @@ public class GameLogicManager : NetworkBehaviour
     {
         ServerExecuteDungeonStart();
 
-        //SetPhase(GamePhase.StageStart);
-        if (isServer)
-        {
-            RpcSetPhase(GamePhase.StageStart);
-
-        }
+        RpcSetPhase(GamePhase.StageStart);
     }
 
     [Server]
@@ -419,17 +409,13 @@ public class GameLogicManager : NetworkBehaviour
     #endregion
 
     #region StageStart
-
     private void ExecuteStageStart()
     {
-        //이번 스테이지에 등장할 몬스터가 결정된다.
-
-        //다음 몬스터를 향해 달려가는 애니메이션이 재생된다.
-
         PlayStageAnimation(3.0f).Forget();
-        RpcMoveCorridors(3.0f);
 
+        RpcMoveCorridors(3.0f);
     }
+
     [ClientRpc]
     private void RpcClearMonsterInfoBeforeAnimation()
     {
@@ -809,11 +795,9 @@ public class GameLogicManager : NetworkBehaviour
         uint currentGetBonusPlayerNetId = calculator.AttackSuccessedList[currentBonusPlayerIndex].NetId;
         int[] arrayBonus = BonusGems.ToArray();
 
-
         RpcShowGetBonusUI(arrayBonus, currentGetBonusPlayerNetId);
 
         //보너스 전부 떨어지면 OnAllPlayerGetBonus 실행.
-
     }
 
     [ClientRpc]
@@ -824,7 +808,6 @@ public class GameLogicManager : NetworkBehaviour
             UIManager.Instance.HideUIWithPooling(UIPrefab.WaitForOtherUI);
 
             UI_GetBonus.Show(arrayBonus);
-
         }
         else
         {

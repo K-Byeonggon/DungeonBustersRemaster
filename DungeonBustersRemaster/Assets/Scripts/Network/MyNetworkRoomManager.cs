@@ -349,21 +349,5 @@ public class MyNetworkRoomManager : NetworkRoomManager
         return null; // 찾지 못한 경우 null 반환
     }
 
-    public List<MyPlayerGameData> GetAllPlayerGameDatas()
-    {
-        List<MyPlayerGameData> playerGameDataList = new List<MyPlayerGameData>();
-        foreach(var kvp in NetworkClient.spawned)
-        {
-            NetworkIdentity identity = kvp.Value;
-
-            MyPlayerGameData playerGameData = identity.GetComponent<MyPlayerGameData>();
-            if (playerGameData != null)
-            {
-                playerGameDataList.Add(playerGameData);
-            }
-        }
-        return playerGameDataList;
-    }
-
     #endregion
 }

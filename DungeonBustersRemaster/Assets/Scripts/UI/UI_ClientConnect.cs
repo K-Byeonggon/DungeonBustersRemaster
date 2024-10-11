@@ -44,12 +44,13 @@ public class UI_ClientConnect : MonoBehaviour
         if(!IsValidAddress(address))
         {
             Text_Error.text = "잘못된 주소입니다.\n다시 입력해 주세요.";
+            Text_Error.gameObject.SetActive(true);
             return;
         }
         else
         {
             Text_Error.text = "주소는 주소에용";
-
+            Text_Error.gameObject.SetActive(false);
         }
 
         try
@@ -60,6 +61,7 @@ public class UI_ClientConnect : MonoBehaviour
         {
             Debug.LogError($"클라이언트 시작 중 오류 발생: {e.Message}");
             Text_Error.text = "클라이언트 시작 중 오류가 발생했습니다.";
+            Text_Error.gameObject.SetActive(true);
         }
     }
 

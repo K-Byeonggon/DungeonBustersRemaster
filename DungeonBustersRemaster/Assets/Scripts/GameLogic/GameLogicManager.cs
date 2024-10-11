@@ -134,7 +134,6 @@ public class GameLogicManager : NetworkBehaviour
 
     private void OnBonusGemsChanged(SyncList<int>.Operation op, int oldItem, int newItem)
     {
-
         Debug.Log("<color=red> OnBonusGemsChanged </color>");
         switch (op)
         {

@@ -81,8 +81,11 @@ public class UI_WinPlayer : MonoBehaviour
     private void OnClick_Confirm()
     {
         UIManager.Instance.HideUIWithTimer(UIPrefab.WinPlayerUI);
+
         //로비로
         UnityEngine.SceneManagement.SceneManager.LoadScene(MyNetworkRoomManager.Instance.offlineScene);
+        MyNetworkRoomManager.Instance.OnChangeScene(MyNetworkRoomManager.Instance.offlineScene);
+
 
         //클라이언트 연결해재
         if (NetworkClient.localPlayer.isServer)

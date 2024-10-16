@@ -202,7 +202,7 @@ public class MyNetworkRoomManager : NetworkRoomManager
 
 
 
-    private void OnChangeScene(string sceneName)
+    public void OnChangeScene(string sceneName)
     {
         //씬이 미리 바뀌기 전에 씬 이름으로 UI활성화하는 느낌.
 

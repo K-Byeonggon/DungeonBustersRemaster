@@ -97,11 +97,13 @@ public class UI_GameResult : MonoBehaviour
 
         MyPlayer player = NetworkClient.localPlayer.GetComponent<MyPlayer>();
 
-        player.CmdRequestSetPhaseGameEnd();
+        GameLogicManager.Instance.ServerRequestTargetSetPhaseGameEnd(player.connectionToClient);    //Cmd대신 Server로 GameLogicManager에서 직접 TargetRpc부름
 
         UIManager.Instance.HideUIWithTimer(UIPrefab.GameResultUI);
 
     }
+
+
 
     public static void Show()
     {

@@ -96,12 +96,14 @@ public class MyPlayer : NetworkBehaviour
         }
     }
 
+    /*
     //게임결과창을 TargetRpc로 띄우는데 사용
     [Command(requiresAuthority = false)]
     public void CmdRequestSetPhaseGameEnd()
     {
         GameLogicManager.Instance.TargetSetPhaseGameEnd(connectionToClient);
     }
+    */
 
     public void SetAnimator(AnimationState anim)
     {

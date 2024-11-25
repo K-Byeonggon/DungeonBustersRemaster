@@ -741,7 +741,7 @@ public class GameLogicManager : NetworkBehaviour
 
     }
 
-    //MyPlayerGameData에서 Cmd로 불러짐.
+
     [Server]
     public void AddBonusGemsToLogicManager(GemColor color, int gemCount)
     {
@@ -944,6 +944,12 @@ public class GameLogicManager : NetworkBehaviour
     {
         UIManager.Instance.HideUIWithTimer(UIPrefab.GameOverUI);
         UI_GameResult.Show();
+    }
+
+    [Server]
+    public void ServerRequestTargetSetPhaseGameEnd(NetworkConnection target)
+    {
+        TargetSetPhaseGameEnd(target);
     }
 
 

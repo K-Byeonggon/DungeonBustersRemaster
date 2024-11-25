@@ -70,7 +70,9 @@ public class UI_LoseGems : MonoBehaviour
     private void Action_OnClickGem(GemColor color)
     {
         //해당 보석 모두 잃는 Cmd메서드
+        int loseGemCount = playerGameData.Gems[(int)color];
         playerGameData.CmdLoseAllGemsByColor(color);
+        GameLogicManager.Instance.AddBonusGemsToLogicManager(color, loseGemCount);
 
         //보석 제출 했다고 logicManager에 알리기
         //GameLogicManager.Instance.RegisterLoseGemResultChecked(NetworkClient.localPlayer.netId);

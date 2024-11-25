@@ -195,8 +195,9 @@ public class MyPlayerGameData : NetworkBehaviour
 
         gems[(int)color] = 0;
 
-        GameLogicManager.Instance.AddBonusGemsToLogicManager(color, loseGemCount);
+        //GameLogicManager.Instance.AddBonusGemsToLogicManager(color, loseGemCount);
     }
+
 
     //GameManager의 calculator를 통해서 플레이어 보상 순서 결정.
     [Command(requiresAuthority = false)]

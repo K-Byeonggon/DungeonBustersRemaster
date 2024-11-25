@@ -6,10 +6,10 @@ using System.Globalization;
 using System.Linq;
 using UnityEngine;
 
-public class PlayerCardInfo
+public struct PlayerCardInfo
 {
-    public uint NetId { get; set; }
-    public int CardNumber { get; set; }
+    public uint NetId { get;}
+    public int CardNumber { get;}
 
     public PlayerCardInfo(uint netId, int cardNumber)
     {
